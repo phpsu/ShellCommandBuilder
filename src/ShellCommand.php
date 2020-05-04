@@ -12,6 +12,8 @@ final class ShellCommand implements ShellInterface
     private $executable;
     /** @var array */
     private $arguments = [];
+    /** @var array */
+    private $environmentVariables = [];
     /** @var bool  */
     private $isCommandSubstitution = false;
     /** @var ShellBuilder */
@@ -23,14 +25,9 @@ final class ShellCommand implements ShellInterface
         $this->parentBuilder = $builder;
     }
 
-    public function getBuilder(): ShellBuilder
-    {
-        return $this->parentBuilder;
-    }
-
     public function addToBuilder(): ShellBuilder
     {
-        return $this->getBuilder()->add($this);
+        return $this->parentBuilder->add($this);
     }
 
     public function toggleCommandSubstitution(): self
@@ -91,6 +88,12 @@ final class ShellCommand implements ShellInterface
         return $this;
     }
 
+    public function addEnv(string $name, string $value): self
+    {
+        $this->environmentVariables[$name] = $value;
+        return $this;
+    }
+
     private function argumentsToString(): string
     {
         $result = [];
@@ -106,6 +109,15 @@ final class ShellCommand implements ShellInterface
             $result[] = implode('', [$prefix, $argument, $value]);
         }
         return str_replace(' #NOSPACE#', '', implode(' ', $result));
+    }
+
+    private function environmentVariablesToString(): string
+    {
+        $envs = [];
+        foreach ($this->environmentVariables as $key => $variable) {
+            $envs[] = sprintf('%s=%s', strtoupper($key), escapeshellarg($variable));
+        }
+        return implode(' ', $envs);
     }
 
     public function __toArray(): array
@@ -124,19 +136,21 @@ final class ShellCommand implements ShellInterface
             'executable' => $this->executable,
             'arguments' => $commands,
             'isCommandSubstitution' => $this->isCommandSubstitution,
+            'environmentVariables' => $this->environmentVariables,
         ];
     }
 
     public function __toString(): string
     {
         $result = (sprintf(
-            '%s%s',
+            '%s%s%s',
+            empty($this->environmentVariables) ? '' : $this->environmentVariablesToString() . ' ',
             $this->executable,
-            empty($this->arguments) ? '' : ' ' . ($this->argumentsToString())
+            empty($this->arguments) ? '' : ' ' . $this->argumentsToString()
         ));
         if ($this->isCommandSubstitution) {
-            return sprintf("\$(%s)", trim($result));
+            return sprintf("\$(%s)", $result);
         }
-        return trim($result);
+        return $result;
     }
 }

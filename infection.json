@@ -9,7 +9,12 @@
     "configDir": "tests\/"
   },
   "logs": {
-    "text": "tests/test-results/infection.log"
+    "text": "tests/test-results/infection.log",
+    "summary": "tests/test-results/summary.log",
+    "perMutator": "tests/test-results/per-mutator.md",
+    "badge": {
+      "branch": "master"
+    }
   },
   "mutators": {
     "@default": true,

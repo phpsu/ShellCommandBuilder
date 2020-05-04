@@ -5,6 +5,7 @@ services:
     image: pluswerk/php-dev:nginx-7.2
     volumes:
     - ./:/app
+    - ~/.ssh:/home/application/.ssh
     - ~/.gitconfig:/home/application/.gitconfig
     - ~/.composer/cache:/home/application/.composer/cache
     environment:

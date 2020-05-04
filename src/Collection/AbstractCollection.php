@@ -9,7 +9,7 @@ abstract class AbstractCollection implements CollectionInterface
     /** @var CollectionTuple */
     protected $tuple;
 
-    public function toTuple($command, string $join): CollectionTuple
+    protected function toTuple($command, string $join): CollectionTuple
     {
         return CollectionTuple::create($command, $join);
     }

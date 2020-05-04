@@ -126,7 +126,7 @@ final class ShellBuilder implements ShellInterface
             return sprintf(
                 '%s%s;%s',
                 ControlOperator::CURLY_BLOCK_DEFINITON_OPEN,
-                trim($result),
+                $result,
                 ControlOperator::CURLY_BLOCK_DEFINITON_CLOSE
             );
         }
@@ -134,10 +134,10 @@ final class ShellBuilder implements ShellInterface
             return sprintf(
                 '%s%s%s',
                 ControlOperator::BLOCK_DEFINITON_OPEN,
-                trim($result),
+                $result,
                 ControlOperator::BLOCK_DEFINITON_CLOSE
             );
         }
-        return trim($result);
+        return $result;
     }
 }

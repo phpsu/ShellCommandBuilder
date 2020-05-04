@@ -171,12 +171,28 @@ final class ShellBuilderTest extends TestCase
         $builder->add('a')->pipe(false);
     }
 
+    public function testFaultyOrCommand(): void
+    {
+        $this->expectException(ShellBuilderException::class);
+        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
+        $builder = new ShellBuilder();
+        $builder->add('a')->or(false);
+    }
+
     public function testFaultyCommandChainNoBaseCommand(): void
     {
         $this->expectException(ShellBuilderException::class);
         $this->expectExceptionMessage('You have to first add a command before you can combine it');
         $builder = new ShellBuilder();
-        $builder->pipe('a');
+        $builder->pipeWithForward('a');
+    }
+
+    public function testFaultyCommandAndNoBaseCommand(): void
+    {
+        $this->expectException(ShellBuilderException::class);
+        $this->expectExceptionMessage('You have to first add a command before you can combine it');
+        $builder = new ShellBuilder();
+        $builder->and('a');
     }
 
     public function testBuilderToArray(): void

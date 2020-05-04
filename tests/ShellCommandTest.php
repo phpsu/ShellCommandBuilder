@@ -23,6 +23,16 @@ class ShellCommandTest extends TestCase
         $this->assertEquals("mysql -u 'username' -p 'password' -h '127.0.0.1' 'database' --skip-comments", (string)$command);
     }
 
+    public function testShellCommandWithEnvironmentVariables(): void
+    {
+        $command = new ShellCommand('grep');
+        $command->addEnv('grep_color', '1;35')
+            ->addOption('color', 'always')
+            ->addArgument('root')
+            ->addArgument('/etc/passwd', false);
+        $this->assertEquals('GREP_COLOR=\'1;35\' grep --color \'always\' \'root\' /etc/passwd', (string)$command);
+    }
+
     public function testShellCommandWithCommandSubstitution(): void
     {
         $command = new ShellCommand('ls');
@@ -50,6 +60,35 @@ class ShellCommandTest extends TestCase
         $this->assertEquals([
             ['prefix' => '--', 'argument' =>  "color", 'suffix' =>  '=', 'value' =>  '\'true\'']
         ], $command['arguments']);
+    }
+
+    public function testShellCommandWithCommandSubstitutionToArray(): void
+    {
+        $shell = (new ShellCommand('ls'))
+            ->addOption('color', 'true', true, true)
+            ->addEnv('a', 'b')
+        ;
+        $shell->toggleCommandSubstitution();
+        $this->assertEquals('$(A=\'b\' ls --color=\'true\')', (string)$shell);
+        $command = $shell->__toArray();
+        $this->assertEquals('ls', $command['executable']);
+        $this->assertEquals(true, $command['isCommandSubstitution']);
+        $this->assertEquals(['a' => 'b'], $command['environmentVariables']);
+        $this->assertEquals([
+            ['prefix' => '--', 'argument' =>  "color", 'suffix' =>  '=', 'value' =>  '\'true\'']
+        ], $command['arguments']);
+    }
+
+    public function testUnEscapedOption(): void
+    {
+        $command = (new ShellCommand('ls'))->addOption('color', 'true', false, true);
+        $this->assertEquals('ls --color=true', (string)$command);
+    }
+
+    public function testUnEscapedNoAssignOperatorOption(): void
+    {
+        $command = (new ShellCommand('ls'))->addOption('color', 'true', false, false);
+        $this->assertEquals('ls --color true', (string)$command);
     }
 
     public function testShortOptionWithWrongType(): void
