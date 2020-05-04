@@ -10,13 +10,13 @@ final class ShellCommand implements ShellInterface
 {
     /** @var string */
     private $executable;
-    /** @var array */
+    /** @var array<array<string|ShellInterface>> */
     private $arguments = [];
-    /** @var array */
+    /** @var array<string,string> */
     private $environmentVariables = [];
     /** @var bool  */
     private $isCommandSubstitution = false;
-    /** @var ShellBuilder */
+    /** @var ShellBuilder|null */
     private $parentBuilder;
 
     public function __construct(string $name, ShellBuilder $builder = null)
@@ -27,6 +27,9 @@ final class ShellCommand implements ShellInterface
 
     public function addToBuilder(): ShellBuilder
     {
+        if ($this->parentBuilder === null) {
+            throw new ShellBuilderException('You need to create a ShellBuilder first before you can use it within a command');
+        }
         return $this->parentBuilder->add($this);
     }
 
@@ -36,6 +39,14 @@ final class ShellCommand implements ShellInterface
         return $this;
     }
 
+    /**
+     * @param string $option
+     * @param ShellInterface|string|mixed $value
+     * @param bool $escapeArgument
+     * @param bool $withAssignOperator
+     * @return self
+     * @throws ShellBuilderException
+     */
     public function addShortOption(string $option, $value = '', bool $escapeArgument = true, bool $withAssignOperator = false): self
     {
         if (!($value instanceof ShellInterface || is_string($value))) {
@@ -47,6 +58,14 @@ final class ShellCommand implements ShellInterface
         return $this->add($option, $value, '-', $withAssignOperator ? '=' : ' ');
     }
 
+    /**
+     * @param string $option
+     * @param ShellInterface|string|mixed $value
+     * @param bool $escapeArgument
+     * @param bool $withAssignOperator
+     * @return self
+     * @throws ShellBuilderException
+     */
     public function addOption(string $option, $value = '', bool $escapeArgument = true, bool $withAssignOperator = false): self
     {
         if (!($value instanceof ShellInterface || is_string($value))) {
@@ -58,6 +77,12 @@ final class ShellCommand implements ShellInterface
         return $this->add($option, $value, '--', $withAssignOperator ? '=' : ' ');
     }
 
+    /**
+     * @param ShellInterface|string|mixed $argument
+     * @param bool $escapeArgument
+     * @return self
+     * @throws ShellBuilderException
+     */
     public function addArgument($argument, bool $escapeArgument = true): self
     {
         if (!($argument instanceof ShellInterface || is_string($argument))) {
@@ -74,6 +99,11 @@ final class ShellCommand implements ShellInterface
         return $this->add($argument, '', 'subcommand');
     }
 
+    /**
+     * @param ShellInterface|string|mixed $argument
+     * @return self
+     * @throws ShellBuilderException
+     */
     public function addNoSpaceArgument($argument): self
     {
         if (!($argument instanceof ShellInterface || is_string($argument))) {
@@ -82,6 +112,13 @@ final class ShellCommand implements ShellInterface
         return $this->add($argument, '', '#NOSPACE#');
     }
 
+    /**
+     * @param string|ShellInterface $argument
+     * @param string|ShellInterface $value
+     * @param string $prefix
+     * @param string $suffix
+     * @return self
+     */
     private function add($argument, $value = '', string $prefix = '', string $suffix = ' '): self
     {
         $this->arguments[] = [$prefix, $argument, $suffix, $value];
@@ -120,6 +157,9 @@ final class ShellCommand implements ShellInterface
         return implode(' ', $envs);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function __toArray(): array
     {
         $commands = [];

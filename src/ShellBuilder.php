@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder;
 
+use PHPSu\ShellCommandBuilder\Collection\CollectionInterface;
 use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Collection\ShellList;
@@ -13,7 +14,7 @@ use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 
 final class ShellBuilder implements ShellInterface
 {
-    /** @var array<ShellCommand|ShellBuilder|CollectionTuple>  */
+    /** @var array<ShellInterface|CollectionTuple|CollectionInterface>  */
     private $commandList = [];
     /** @var int */
     private $groupType;
@@ -28,6 +29,11 @@ final class ShellBuilder implements ShellInterface
         return new ShellCommand($name, $withNewBuilder ? new self() : $this);
     }
 
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function add($command): self
     {
         if (is_string($command)) {
@@ -44,6 +50,11 @@ final class ShellBuilder implements ShellInterface
         return $this;
     }
 
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function and($command): self
     {
         if (is_string($command)) {
@@ -56,6 +67,11 @@ final class ShellBuilder implements ShellInterface
         return $this;
     }
 
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function or($command): self
     {
         if (is_string($command)) {
@@ -68,6 +84,11 @@ final class ShellBuilder implements ShellInterface
         return $this;
     }
 
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function pipe($command): self
     {
         if (is_string($command)) {
@@ -80,6 +101,11 @@ final class ShellBuilder implements ShellInterface
         return $this;
     }
 
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function pipeWithForward($command): self
     {
         if (is_string($command)) {
@@ -97,6 +123,11 @@ final class ShellBuilder implements ShellInterface
         return new self($inSameShell ? GroupType::SAMESHELL_GROUP : GroupType::SUBSHELL_GROUP);
     }
 
+    /**
+     * @param string|ShellInterface $command
+     * @param bool $allowEmpty
+     * @throws ShellBuilderException
+     */
     private function validateCommand($command, bool $allowEmpty = false): void
     {
         if (!($command instanceof ShellInterface)) {
@@ -107,6 +138,9 @@ final class ShellBuilder implements ShellInterface
         }
     }
 
+    /**
+     * @return array<mixed>
+     */
     public function __toArray(): array
     {
         $commands = [];

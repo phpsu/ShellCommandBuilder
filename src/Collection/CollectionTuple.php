@@ -10,11 +10,17 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 final class CollectionTuple implements ShellInterface
 {
     /** @var string */
-    protected $join;
+    protected $join = '';
 
     /** @var string|ShellInterface */
-    protected $value;
+    protected $value = '';
 
+    /**
+     * @param string|ShellInterface|mixed $value
+     * @param string $join
+     * @return static
+     * @throws ShellBuilderException
+     */
     public static function create($value, string $join = ''): self
     {
         if (!(is_string($value) || $value instanceof ShellInterface)) {
@@ -26,6 +32,9 @@ final class CollectionTuple implements ShellInterface
         return $tuple;
     }
 
+    /**
+     * @return array<string|ShellInterface|array<mixed>>
+     */
     public function __toArray(): array
     {
         $value = $this->value instanceof ShellInterface ? $this->value->__toArray() : $this->value;
@@ -34,6 +43,7 @@ final class CollectionTuple implements ShellInterface
 
     public function __toString(): string
     {
+        /** @psalm-suppress ImplicitToStringCast **/
         return sprintf(' %s %s', $this->join, $this->value);
     }
 }

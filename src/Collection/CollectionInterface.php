@@ -6,5 +6,5 @@ namespace PHPSu\ShellCommandBuilder\Collection;
 
 interface CollectionInterface
 {
-
+    public function __toString(): string;
 }

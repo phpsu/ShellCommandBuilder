@@ -62,6 +62,13 @@ class ShellCommandTest extends TestCase
         ], $command['arguments']);
     }
 
+    public function testAccessBuilderBeforeCreatingIt(): void
+    {
+        $this->expectException(ShellBuilderException::class);
+        $this->expectExceptionMessage('You need to create a ShellBuilder first before you can use it within a command');
+        (new ShellCommand('hi'))->addToBuilder();
+    }
+
     public function testShellCommandWithCommandSubstitutionToArray(): void
     {
         $shell = (new ShellCommand('ls'))
