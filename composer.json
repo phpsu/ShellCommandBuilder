@@ -1,0 +1,52 @@
+{
+    "name": "cben/shellcommandbuilder",
+    "description": "Fluid Builder to create shell commands",
+    "type": "library",
+    "config": {
+        "optimize-autoloader": true,
+        "process-timeout": 0
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.5",
+        "vimeo/psalm": "^3.11",
+        "infection/infection": "^0.15.3",
+        "spatie/phpunit-watcher": "^1.22",
+        "phpunit/php-invoker": "^2.0",
+        "pluswerk/grumphp-config": "^3.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chris Ben",
+            "email": "git@cben.co"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "PHPSu\\ShellCommandBuilder\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PHPSu\\ShellCommandBuilder\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit -c tests/phpunit.xml --testdox --color=always",
+        "test:watch": "vendor/bin/phpunit-watcher watch -c tests/phpunit.xml --testdox",
+        "infection": "vendor/bin/infection --threads=4 --only-covered --min-msi=50 --min-covered-msi=50 --ansi"
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.2 <7.5",
+        "ext-json": "*"
+    },
+    "extra": {
+        "pluswerk/grumphp-config": {
+            "auto-setting": false
+        },
+        "grumphp": {
+            "config-default-path": "vendor/pluswerk/grumphp-config/grumphp.yml"
+        }
+    }
+}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        bootstrap="phpunit-bootstrap.php"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        beStrictAboutTestsThatDoNotTestAnything="true"
+        beStrictAboutCoversAnnotation="true"
+        beStrictAboutOutputDuringTests="true"
+        beStrictAboutChangesToGlobalState="true"
+        enforceTimeLimit="true"
+        executionOrder="default"
+        resolveDependencies="true"
+        timeoutForLargeTests="1"
+        timeoutForMediumTests="1"
+        timeoutForSmallTests="1"
+        colors="true">
+    <testsuites>
+        <testsuite name="All">
+            <directory suffix="Test.php">../tests/</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../src/</directory>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-html" target="test-results/report" lowUpperBound="49" highLowerBound="89"/>
+        <log type="coverage-clover" target="test-results/coverage.xml"/>
+        <log type="coverage-text" target="test-results/report.txt" showUncoveredFiles="false"/>
+        <log type="junit" target="test-results/logfile.xml"/>
+        <log type="testdox-html" target="test-results/testdox.html"/>
+        <log type="testdox-text" target="test-results/testdox.txt"/>
+    </logging>
+</phpunit>
