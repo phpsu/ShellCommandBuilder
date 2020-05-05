@@ -1,5 +1,13 @@
 # ShellCommandBuilder
 
+[![Latest Version](https://img.shields.io/github/release-pre/phpsu/shellcommandbuilder.svg?style=flat-square)](https://github.com/phpsu/shellcommandbuilder/releases)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+[![Build Status](https://img.shields.io/travis/phpsu/shellcommandbuilder/master.svg?style=flat-square)](https://travis-ci.org/phpsu/shellcommandbuilder)
+[![Coverage Status](https://img.shields.io/codecov/c/gh/phpsu/shellcommandbuilder.svg?style=flat-square)](https://codecov.io/gh/phpsu/shellcommandbuilder)
+[![Infection MSI](https://img.shields.io/endpoint?style=flat-square&url=https://badge-api.stryker-mutator.io/github.com/phpsu/shellcommandbuilder/master)](https://infection.github.io)
+[![Quality Score](https://img.shields.io/scrutinizer/g/phpsu/shellcommandbuilder.svg?style=flat-square)](https://scrutinizer-ci.com/g/phpsu/shellcommandbuilder)
+[![Total Downloads](https://img.shields.io/packagist/dt/phpsu/shellcommandbuilder.svg?style=flat-square)](https://packagist.org/packages/phpsu/shellcommandbuilder)
+
 Creating basic and more complex shell commands in an object-oriented fluid fashion.
 This makes it very straight forward to abstract the general mechanisms of bash behind a readable and debuggable layer.
 
