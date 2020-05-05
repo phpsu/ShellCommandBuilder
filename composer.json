@@ -1,5 +1,5 @@
 {
-    "name": "cben/shellcommandbuilder",
+    "name": "phpsu/shellcommandbuilder",
     "description": "Fluid Builder to create shell commands",
     "type": "library",
     "config": {
