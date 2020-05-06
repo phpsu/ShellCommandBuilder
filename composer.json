@@ -34,7 +34,7 @@
     "scripts": {
         "test": "vendor/bin/phpunit -c tests/phpunit.xml --testdox --color=always",
         "test:watch": "vendor/bin/phpunit-watcher watch -c tests/phpunit.xml --testdox",
-        "infection": "vendor/bin/infection --threads=4 --only-covered --min-msi=50 --min-covered-msi=50 --ansi",
+        "infection": "vendor/bin/infection --threads=4 --only-covered --min-msi=100 --min-covered-msi=100 --ansi",
         "psalm": "vendor/bin/psalm"
     },
     "minimum-stability": "stable",
