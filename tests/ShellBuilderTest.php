@@ -205,6 +205,75 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals('c', $debug[0]['executable']);
     }
 
+    public function testRedirectTo(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('hello')->addToBuilder()
+            ->redirectOutput('test.txt');
+        $this->assertEquals("echo 'hello' > test.txt", (string)$builder);
+    }
+
+    public function testRedirectToAppend(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('hello')->addToBuilder()
+            ->redirectOutput('test.txt', true);
+        $this->assertEquals("echo 'hello' >> test.txt", (string)$builder);
+    }
+
+    public function testRedirectToInput(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('mysql')->addArgument('database')->addToBuilder()
+            ->redirectInput(
+                $builder->createCommand('mysqldump')
+                    ->addArgument('db', false)
+                    ->addNoSpaceArgument('.sql')
+            );
+        $this->assertEquals("mysql 'database' < mysqldump db.sql", (string)$builder);
+    }
+
+    public function testRedirectError(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('not-existing', false)->addToBuilder()
+            ->redirectError('/var/logs/errors');
+        $this->assertEquals("echo not-existing 2> /var/logs/errors", (string)$builder);
+    }
+
+    public function testRedirectBetweenFiles(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('not-existing', false)->addToBuilder()
+            ->redirect('/var/logs/errors');
+        $this->assertEquals("echo not-existing >& /var/logs/errors", (string)$builder);
+    }
+
+    public function testRedirectErrorToOutput(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('not-existing', false)->addToBuilder()
+            ->redirect('/var/logs/errors')
+            ->redirectErrorToOutput()
+        ;
+        $this->assertEquals("echo not-existing >& /var/logs/errors 2>&1", (string)$builder);
+    }
+
+
+    public function testRedirectBetweenFilesToRight(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('file.txt')->addToBuilder()
+            ->redirect('ls', false);
+        $this->assertEquals("file.txt <& ls", (string)$builder);
+    }
+
+    public function testShellBuilderToStringEqualsShellCommandToString(): void
+    {
+        $builder = new ShellBuilder();
+        $this->assertEquals((string)$builder->createCommand('echo')->addToBuilder(), (string)$builder->createCommand('echo'));
+    }
+
     public function testRemoteShellCommand(): void
     {
         $result = "ssh -F 'php://temp' 'hostc' 'mysqldump --opt --skip-comments --single-transaction --lock-tables=false -h '\''database'\'' -u '\''root'\'' -p '\''root'\'' '\''sequelmovie'\'' | (echo '\''CREATE DATABASE IF NOT EXISTS `sequelmovie2`;USE `sequelmovie2`;'\'' && cat)' | mysql -h '127.0.0.1' -P 2206 -u 'root' -p 'root'";
