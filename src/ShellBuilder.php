@@ -37,10 +37,7 @@ final class ShellBuilder implements ShellInterface
      */
     public function add($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
-        $this->validateCommand($command, true);
+        $command = $this->parseCommand($command, true);
         if (empty($this->commandList)) {
             $this->commandList[] = $command;
             return $this;
@@ -170,28 +167,25 @@ final class ShellBuilder implements ShellInterface
 
     /**
      * @param string|ShellInterface $command
+     * @param bool $allowEmpty
      * @return ShellInterface
      * @throws ShellBuilderException
      */
-    private function parseCommand($command): ShellInterface
+    private function parseCommand($command, bool $allowEmpty = false): ShellInterface
     {
         if (is_string($command)) {
             $command = $this->createCommand($command);
         }
-        $this->validateCommand($command);
+        try {
+            $this->validateCommand($command, $allowEmpty);
+        } catch (\TypeError $typeError) {
+            throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
+        }
         return $command;
     }
 
-    /**
-     * @param string|ShellInterface $command
-     * @param bool $allowEmpty
-     * @throws ShellBuilderException
-     */
-    private function validateCommand($command, bool $allowEmpty = false): void
+    private function validateCommand(ShellInterface $command, bool $allowEmpty): void
     {
-        if (!($command instanceof ShellInterface)) {
-            throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        }
         if (!$allowEmpty && empty($this->commandList)) {
             throw new ShellBuilderException('You have to first add a command before you can combine it');
         }
