@@ -37,12 +37,12 @@ class ShellCommandTest extends TestCase
     {
         $command = new ShellCommand('ls');
         $command->addShortOption('ld')
-            ->addArgument(
+            ->addNoSpaceArgument(
                 (new ShellCommand('date'))
                     ->addArgument('+%B', false)
                 ->toggleCommandSubstitution()
             )
-            ->addNoSpaceArgument('.txt')
+            ->addArgument('.txt', false)
         ;
         $this->assertEquals("ls -ld $(date +%B).txt", (string)$command);
     }
@@ -58,7 +58,38 @@ class ShellCommandTest extends TestCase
         $command = (new ShellCommand('ls'))->addOption('color', 'true', true, true)->__toArray();
         $this->assertEquals('ls', $command['executable']);
         $this->assertEquals([
-            ['prefix' => '--', 'argument' =>  "color", 'suffix' =>  '=', 'value' =>  '\'true\'']
+            [
+                'isArgument' => false,
+                'isSubcommand' => false,
+                'isShortOption' => false,
+                'isOption' => true,
+                'isEnvironmentVariable' => false,
+                'escaped' => true,
+                'withAssign' => true,
+                'spaceAfterValue' => true,
+                'value' => '\'true\'',
+                'argument' =>  "color",
+            ]
+        ], $command['arguments']);
+    }
+
+    public function testShellCommandArgumentToArray(): void
+    {
+        $command = (new ShellCommand('ls'))->addArgument('test', false)->__toArray();
+        $this->assertEquals('ls', $command['executable']);
+        $this->assertEquals([
+            [
+                'isArgument' => true,
+                'isSubcommand' => false,
+                'isShortOption' => false,
+                'isOption' => false,
+                'isEnvironmentVariable' => false,
+                'escaped' => false,
+                'withAssign' => false,
+                'spaceAfterValue' => true,
+                'value' => '',
+                'argument' => "test",
+            ]
         ], $command['arguments']);
     }
 
@@ -80,9 +111,33 @@ class ShellCommandTest extends TestCase
         $command = $shell->__toArray();
         $this->assertEquals('ls', $command['executable']);
         $this->assertEquals(true, $command['isCommandSubstitution']);
-        $this->assertEquals(['a' => 'b'], $command['environmentVariables']);
         $this->assertEquals([
-            ['prefix' => '--', 'argument' =>  "color", 'suffix' =>  '=', 'value' =>  '\'true\'']
+            [
+                'isArgument' => false,
+                'isSubcommand' => false,
+                'isShortOption' => false,
+                'isOption' => false,
+                'isEnvironmentVariable' => true,
+                'escaped' => true,
+                'withAssign' => true,
+                'spaceAfterValue' => true,
+                'value' => '\'b\'',
+                'argument' => "A",
+            ]
+        ], $command['environmentVariables']);
+        $this->assertEquals([
+            [
+                'isArgument' => false,
+                'isSubcommand' => false,
+                'isShortOption' => false,
+                'isOption' => true,
+                'isEnvironmentVariable' => false,
+                'escaped' => true,
+                'withAssign' => true,
+                'spaceAfterValue' => true,
+                'value' => '\'true\'',
+                'argument' =>  "color",
+            ]
         ], $command['arguments']);
     }
 

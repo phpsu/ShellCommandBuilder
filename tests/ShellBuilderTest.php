@@ -336,4 +336,46 @@ final class ShellBuilderTest extends TestCase
             ->addArgument('./var/storage/')->addToBuilder();
         $this->assertEquals($result, (string)$rsync);
     }
+
+    public function testRsyncCommandWithSubCommandAsOption(): void
+    {
+        $result = "rsync -vvv -az --e 'ssh -F '\''php://temp'\''' 'hosta:/var/www/prod/var/storage/' './var/storage/'";
+        $rsync = new ShellBuilder();
+        $rsync->createCommand('rsync')
+            ->addShortOption('vvv')
+            ->addShortOption('az')
+            ->addOption('e', $rsync->createCommand('ssh')
+                ->addShortOption('F', 'php://temp'))
+            ->addArgument('hosta:/var/www/prod/var/storage/')
+            ->addArgument('./var/storage/')->addToBuilder();
+        $this->assertEquals($result, (string)$rsync);
+    }
+
+    public function testRsyncCommandWithSubCommandAsShortOption(): void
+    {
+        $result = "rsync -vvv -az -e 'ssh -F '\''php://temp'\''' 'hosta:/var/www/prod/var/storage/' './var/storage/'";
+        $rsync = new ShellBuilder();
+        $rsync->createCommand('rsync')
+            ->addShortOption('vvv')
+            ->addShortOption('az')
+            ->addShortOption('e', $rsync->createCommand('ssh')
+                ->addShortOption('F', 'php://temp'))
+            ->addArgument('hosta:/var/www/prod/var/storage/')
+            ->addArgument('./var/storage/')->addToBuilder();
+        $this->assertEquals($result, (string)$rsync);
+    }
+
+    public function testRsyncCommandWithSubCommandAsArgument(): void
+    {
+        $result = "rsync -vvv -az 'ssh -F '\''php://temp'\''' 'hosta:/var/www/prod/var/storage/' './var/storage/'";
+        $rsync = new ShellBuilder();
+        $rsync->createCommand('rsync')
+            ->addShortOption('vvv')
+            ->addShortOption('az')
+            ->addArgument($rsync->createCommand('ssh')
+                ->addShortOption('F', 'php://temp'))
+            ->addArgument('hosta:/var/www/prod/var/storage/')
+            ->addArgument('./var/storage/')->addToBuilder();
+        $this->assertEquals($result, (string)$rsync);
+    }
 }
