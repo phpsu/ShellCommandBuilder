@@ -7,6 +7,7 @@ namespace PHPSu\ShellCommandBuilder;
 use PHPSu\ShellCommandBuilder\Collection\CollectionInterface;
 use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
+use PHPSu\ShellCommandBuilder\Collection\Redirection;
 use PHPSu\ShellCommandBuilder\Collection\ShellList;
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
@@ -36,10 +37,7 @@ final class ShellBuilder implements ShellInterface
      */
     public function add($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
-        $this->validateCommand($command, true);
+        $command = $this->parseCommand($command, true);
         if (empty($this->commandList)) {
             $this->commandList[] = $command;
             return $this;
@@ -57,12 +55,8 @@ final class ShellBuilder implements ShellInterface
      */
     public function and($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
-        $this->validateCommand($command);
         $list = new ShellList();
-        $list->addAnd($command);
+        $list->addAnd($this->parseCommand($command));
         $this->commandList[] = $list;
         return $this;
     }
@@ -74,12 +68,8 @@ final class ShellBuilder implements ShellInterface
      */
     public function or($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
-        $this->validateCommand($command);
         $list = new ShellList();
-        $list->addOr($command);
+        $list->addOr($this->parseCommand($command));
         $this->commandList[] = $list;
         return $this;
     }
@@ -91,12 +81,8 @@ final class ShellBuilder implements ShellInterface
      */
     public function pipe($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
-        $this->validateCommand($command);
         $list = new Pipeline();
-        $list->pipe($command);
+        $list->pipe($this->parseCommand($command));
         $this->commandList[] = $list;
         return $this;
     }
@@ -108,13 +94,69 @@ final class ShellBuilder implements ShellInterface
      */
     public function pipeWithForward($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
-        $this->validateCommand($command);
         $list = new Pipeline();
-        $list->pipeErrorForward($command);
+        $list->pipeErrorForward($this->parseCommand($command));
         $this->commandList[] = $list;
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @param bool $append
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function redirectOutput($command, bool $append = false): self
+    {
+        $redirect = new Redirection();
+        $command = $this->parseCommand($command);
+        $this->commandList[] = $redirect->redirectOutput($command, $append);
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function redirectInput($command): self
+    {
+        $redirect = new Redirection();
+        $command = $this->parseCommand($command);
+        $this->commandList[] = $redirect->redirectInput($command);
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function redirectError($command): self
+    {
+        $redirect = new Redirection();
+        $command = $this->parseCommand($command);
+        $this->commandList[] = $redirect->redirectError($command);
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @param bool $toLeft
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function redirect($command, bool $toLeft = true): self
+    {
+        $redirect = new Redirection();
+        $command = $this->parseCommand($command);
+        $this->commandList[] = $redirect->redirectBetweenFiles($command, $toLeft);
+        return $this;
+    }
+
+    public function redirectErrorToOutput(): self
+    {
+        $this->commandList[] = (new Redirection())->redirectErrorToOutput();
         return $this;
     }
 
@@ -126,13 +168,24 @@ final class ShellBuilder implements ShellInterface
     /**
      * @param string|ShellInterface $command
      * @param bool $allowEmpty
+     * @return ShellInterface
      * @throws ShellBuilderException
      */
-    private function validateCommand($command, bool $allowEmpty = false): void
+    private function parseCommand($command, bool $allowEmpty = false): ShellInterface
     {
-        if (!($command instanceof ShellInterface)) {
+        if (is_string($command)) {
+            $command = $this->createCommand($command);
+        }
+        try {
+            $this->validateCommand($command, $allowEmpty);
+        } catch (\TypeError $typeError) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
+        return $command;
+    }
+
+    private function validateCommand(ShellInterface $command, bool $allowEmpty): void
+    {
         if (!$allowEmpty && empty($this->commandList)) {
             throw new ShellBuilderException('You have to first add a command before you can combine it');
         }
