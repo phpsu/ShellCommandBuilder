@@ -11,6 +11,8 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 final class ShellList extends AbstractCollection
 {
     /**
+     * Returns something like: || echo "hello world"
+     *
      * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
@@ -23,6 +25,8 @@ final class ShellList extends AbstractCollection
     }
 
     /**
+     * Returns something like: && echo "hello world"
+     *
      * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
@@ -35,6 +39,8 @@ final class ShellList extends AbstractCollection
     }
 
     /**
+     * Returns something like: ; echo "hello world"
+     *
      * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
@@ -43,6 +49,20 @@ final class ShellList extends AbstractCollection
     {
         $list = new self();
         $list->tuple = $list->toTuple($command, ControlOperator::COMMAND_DELIMITER);
+        return $list;
+    }
+
+    /**
+     * Returns something like: & echo "hello world"
+     *
+     * @param string|ShellInterface $command
+     * @return static
+     * @throws ShellBuilderException
+     */
+    public static function async($command): self
+    {
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::BASH_AMPERSAND);
         return $list;
     }
 }

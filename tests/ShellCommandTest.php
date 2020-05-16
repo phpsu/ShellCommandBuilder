@@ -47,6 +47,13 @@ class ShellCommandTest extends TestCase
         $this->assertEquals("ls -ld $(date +%B).txt", (string)$command);
     }
 
+    public function testShellCommandWithInvertedOutput(): void
+    {
+        $command = new ShellCommand('echo');
+        $command->invert()->addShortOption('e', 'hello world');
+        $this->assertEquals('! echo -e \'hello world\'', (string)$command);
+    }
+
     public function testEscapeOptionWithAssignOperator(): void
     {
         $command = (string)(new ShellCommand('ls'))->addOption('color', 'true', true, true);

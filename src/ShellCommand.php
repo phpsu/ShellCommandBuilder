@@ -27,6 +27,8 @@ final class ShellCommand implements ShellInterface
     private $isCommandSubstitution = false;
     /** @var ShellBuilder|null */
     private $parentBuilder;
+    /** @var bool */
+    private $invertOutput = false;
 
     public function __construct(string $name, ShellBuilder $builder = null)
     {
@@ -45,6 +47,12 @@ final class ShellCommand implements ShellInterface
     public function toggleCommandSubstitution(): self
     {
         $this->isCommandSubstitution = !$this->isCommandSubstitution;
+        return $this;
+    }
+
+    public function invert(bool $invert = true): self
+    {
+        $this->invertOutput = $invert;
         return $this;
     }
 
@@ -183,7 +191,8 @@ final class ShellCommand implements ShellInterface
     {
         /** @psalm-suppress ImplicitToStringCast */
         $result = (sprintf(
-            '%s%s%s',
+            '%s%s%s%s',
+            $this->invertOutput ? '! ' : '',
             empty($this->environmentVariables) ? '' : $this->environmentVariablesToString(),
             $this->executable,
             empty($this->arguments) ? '' : ' ' . $this->argumentsToString()

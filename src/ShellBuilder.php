@@ -61,9 +61,6 @@ final class ShellBuilder implements ShellInterface
      */
     public function and($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
         $this->commandList[] = ShellList::addAnd($this->parseCommand($command));
         return $this;
     }
@@ -75,10 +72,18 @@ final class ShellBuilder implements ShellInterface
      */
     public function or($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
         $this->commandList[] = ShellList::addOr($this->parseCommand($command));
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function async($command): self
+    {
+        $this->commandList[] = ShellList::async($this->parseCommand($command));
         return $this;
     }
 
@@ -89,9 +94,6 @@ final class ShellBuilder implements ShellInterface
      */
     public function pipe($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
         $this->commandList[] = Pipeline::pipe($this->parseCommand($command));
         return $this;
     }
@@ -103,9 +105,6 @@ final class ShellBuilder implements ShellInterface
      */
     public function pipeWithForward($command): self
     {
-        if (is_string($command)) {
-            $command = $this->createCommand($command);
-        }
         $this->commandList[] = Pipeline::pipeErrorForward($this->parseCommand($command));
         return $this;
     }

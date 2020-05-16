@@ -221,6 +221,14 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals("coproc echo 'hello'", (string)$builder);
     }
 
+    public function testAsyncListCommandBuilder(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('hello')->addToBuilder()
+            ->async('ls');
+        $this->assertEquals("echo 'hello' & ls", (string)$builder);
+    }
+
     public function testRedirectToAppend(): void
     {
         $builder = new ShellBuilder();
