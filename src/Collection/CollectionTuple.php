@@ -44,6 +44,6 @@ final class CollectionTuple implements ShellInterface
     public function __toString(): string
     {
         /** @psalm-suppress ImplicitToStringCast **/
-        return sprintf(' %s %s', $this->join, $this->value);
+        return sprintf(' %s%s%s', $this->join, $this->value === '' ? '' : ' ', $this->value);
     }
 }
