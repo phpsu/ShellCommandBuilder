@@ -463,4 +463,11 @@ final class ShellBuilderTest extends TestCase
             ->addArgument('./var/storage/')->addToBuilder();
         $this->assertEquals($result, (string)$rsync);
     }
+
+    public function testCreateCommandWithBadArgument(): void
+    {
+        $this->expectException(ShellBuilderException::class);
+        $this->expectExceptionMessage('A Shell Argument has to be a valid Shell word and cannot contain e.g whitespace');
+        ShellBuilder::new()->createCommand('this is not a valid command');
+    }
 }

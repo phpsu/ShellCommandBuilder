@@ -22,6 +22,15 @@ final class ShellBuilder implements ShellInterface
     /** @var bool */
     private $asynchronously = false;
 
+    /**
+     * This is a shortcut for quicker fluid access to the shell builder
+     * @return static
+     */
+    public static function new(): self
+    {
+        return new ShellBuilder();
+    }
+
     public function __construct(int $groupType = GroupType::NO_GROUP)
     {
         $this->groupType = $groupType;
