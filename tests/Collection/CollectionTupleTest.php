@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPSu\ShellCommandBuilder\Tests\Collection;
 
 use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
+use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellBuilder;
@@ -42,5 +43,13 @@ final class CollectionTupleTest extends TestCase
     {
         $tuple = CollectionTuple::create('a', ControlOperator::OR_OPERATOR);
         $this->assertEquals(['||', 'a'], $tuple->__toArray());
+    }
+
+    public function testWithoutCreatingTuple(): void
+    {
+        $tuple = new Pipeline();
+        $this->expectException(ShellBuilderException::class);
+        $this->expectExceptionMessage('Tuple has not been set yet - collection cannot be parsed to array');
+        $tuple->__toArray();
     }
 }

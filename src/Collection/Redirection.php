@@ -16,10 +16,11 @@ final class Redirection extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectOutput($value, bool $append): self
+    public static function redirectOutput($value, bool $append): self
     {
-        $this->tuple = CollectionTuple::create($value, $append ? RedirectOperator::STDOUT_LEFT_APPEND : RedirectOperator::STDOUT_LEFT_INSERT);
-        return $this;
+        $redirect = new self();
+        $redirect->tuple = CollectionTuple::create($value, $append ? RedirectOperator::STDOUT_LEFT_APPEND : RedirectOperator::STDOUT_LEFT_INSERT);
+        return $redirect;
     }
 
     /**
@@ -27,10 +28,11 @@ final class Redirection extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectInput($value): self
+    public static function redirectInput($value): self
     {
-        $this->tuple = CollectionTuple::create($value, RedirectOperator::STDIN_RIGHT);
-        return $this;
+        $redirect = new self();
+        $redirect->tuple = CollectionTuple::create($value, RedirectOperator::STDIN_RIGHT);
+        return $redirect;
     }
 
     /**
@@ -38,10 +40,11 @@ final class Redirection extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectError($value): self
+    public static function redirectError($value): self
     {
-        $this->tuple = CollectionTuple::create($value, RedirectOperator::FILE_DESCRIPTOR_ERR . RedirectOperator::STDOUT_LEFT_INSERT);
-        return $this;
+        $redirect = new self();
+        $redirect->tuple = CollectionTuple::create($value, RedirectOperator::FILE_DESCRIPTOR_ERR . RedirectOperator::STDOUT_LEFT_INSERT);
+        return $redirect;
     }
 
     /**
@@ -50,15 +53,17 @@ final class Redirection extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectBetweenFiles($value, bool $toLeft): self
+    public static function redirectBetweenFiles($value, bool $toLeft): self
     {
-        $this->tuple = CollectionTuple::create($value, $toLeft ? RedirectOperator::REDIRECT_LEFT : RedirectOperator::REDIRECT_RIGHT);
-        return $this;
+        $redirect = new self();
+        $redirect->tuple = CollectionTuple::create($value, $toLeft ? RedirectOperator::REDIRECT_LEFT : RedirectOperator::REDIRECT_RIGHT);
+        return $redirect;
     }
 
-    public function redirectErrorToOutput(): self
+    public static function redirectErrorToOutput(): self
     {
-        $this->tuple = CollectionTuple::create('', RedirectOperator::ERR_TO_OUT_REDIRECT);
-        return $this;
+        $redirect = new self();
+        $redirect->tuple = CollectionTuple::create('', RedirectOperator::ERR_TO_OUT_REDIRECT);
+        return $redirect;
     }
 }

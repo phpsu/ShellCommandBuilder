@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder;
 
-use PHPSu\ShellCommandBuilder\Collection\CollectionInterface;
 use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Collection\Redirection;
@@ -12,13 +11,16 @@ use PHPSu\ShellCommandBuilder\Collection\ShellList;
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
+use TypeError;
 
 final class ShellBuilder implements ShellInterface
 {
-    /** @var array<ShellInterface|CollectionTuple|CollectionInterface>  */
+    /** @var array<ShellInterface|CollectionTuple>  */
     private $commandList = [];
     /** @var int */
     private $groupType;
+    /** @var bool */
+    private $asynchronously = false;
 
     public function __construct(int $groupType = GroupType::NO_GROUP)
     {
@@ -28,6 +30,12 @@ final class ShellBuilder implements ShellInterface
     public function createCommand(string $name, bool $withNewBuilder = false): ShellCommand
     {
         return new ShellCommand($name, $withNewBuilder ? new self() : $this);
+    }
+
+    public function runAsynchronously(bool $isAsync = true): self
+    {
+        $this->asynchronously = $isAsync;
+        return $this;
     }
 
     /**
@@ -42,9 +50,7 @@ final class ShellBuilder implements ShellInterface
             $this->commandList[] = $command;
             return $this;
         }
-        $list = new ShellList();
-        $list->add($command);
-        $this->commandList[] = $list;
+        $this->commandList[] = ShellList::add($command);
         return $this;
     }
 
@@ -55,9 +61,7 @@ final class ShellBuilder implements ShellInterface
      */
     public function and($command): self
     {
-        $list = new ShellList();
-        $list->addAnd($this->parseCommand($command));
-        $this->commandList[] = $list;
+        $this->commandList[] = ShellList::addAnd($this->parseCommand($command));
         return $this;
     }
 
@@ -68,9 +72,18 @@ final class ShellBuilder implements ShellInterface
      */
     public function or($command): self
     {
-        $list = new ShellList();
-        $list->addOr($this->parseCommand($command));
-        $this->commandList[] = $list;
+        $this->commandList[] = ShellList::addOr($this->parseCommand($command));
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function async($command): self
+    {
+        $this->commandList[] = ShellList::async($this->parseCommand($command));
         return $this;
     }
 
@@ -81,9 +94,7 @@ final class ShellBuilder implements ShellInterface
      */
     public function pipe($command): self
     {
-        $list = new Pipeline();
-        $list->pipe($this->parseCommand($command));
-        $this->commandList[] = $list;
+        $this->commandList[] = Pipeline::pipe($this->parseCommand($command));
         return $this;
     }
 
@@ -94,9 +105,7 @@ final class ShellBuilder implements ShellInterface
      */
     public function pipeWithForward($command): self
     {
-        $list = new Pipeline();
-        $list->pipeErrorForward($this->parseCommand($command));
-        $this->commandList[] = $list;
+        $this->commandList[] = Pipeline::pipeErrorForward($this->parseCommand($command));
         return $this;
     }
 
@@ -108,9 +117,8 @@ final class ShellBuilder implements ShellInterface
      */
     public function redirectOutput($command, bool $append = false): self
     {
-        $redirect = new Redirection();
         $command = $this->parseCommand($command);
-        $this->commandList[] = $redirect->redirectOutput($command, $append);
+        $this->commandList[] = Redirection::redirectOutput($command, $append);
         return $this;
     }
 
@@ -121,9 +129,8 @@ final class ShellBuilder implements ShellInterface
      */
     public function redirectInput($command): self
     {
-        $redirect = new Redirection();
         $command = $this->parseCommand($command);
-        $this->commandList[] = $redirect->redirectInput($command);
+        $this->commandList[] = Redirection::redirectInput($command);
         return $this;
     }
 
@@ -134,9 +141,8 @@ final class ShellBuilder implements ShellInterface
      */
     public function redirectError($command): self
     {
-        $redirect = new Redirection();
         $command = $this->parseCommand($command);
-        $this->commandList[] = $redirect->redirectError($command);
+        $this->commandList[] = Redirection::redirectError($command);
         return $this;
     }
 
@@ -148,15 +154,14 @@ final class ShellBuilder implements ShellInterface
      */
     public function redirect($command, bool $toLeft = true): self
     {
-        $redirect = new Redirection();
         $command = $this->parseCommand($command);
-        $this->commandList[] = $redirect->redirectBetweenFiles($command, $toLeft);
+        $this->commandList[] = Redirection::redirectBetweenFiles($command, $toLeft);
         return $this;
     }
 
     public function redirectErrorToOutput(): self
     {
-        $this->commandList[] = (new Redirection())->redirectErrorToOutput();
+        $this->commandList[] = Redirection::redirectErrorToOutput();
         return $this;
     }
 
@@ -178,12 +183,13 @@ final class ShellBuilder implements ShellInterface
         }
         try {
             $this->validateCommand($command, $allowEmpty);
-        } catch (\TypeError $typeError) {
+        } catch (TypeError $typeError) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
         return $command;
     }
 
+    /** @noinspection PhpUnusedParameterInspection */
     private function validateCommand(ShellInterface $command, bool $allowEmpty): void
     {
         if (!$allowEmpty && empty($this->commandList)) {
@@ -206,6 +212,9 @@ final class ShellBuilder implements ShellInterface
     public function __toString(): string
     {
         $result = '';
+        if ($this->asynchronously) {
+            $result = 'coproc ';
+        }
         foreach ($this->commandList as $command) {
             $result .= $command;
         }

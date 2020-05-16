@@ -11,35 +11,58 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 final class ShellList extends AbstractCollection
 {
     /**
+     * Returns something like: || echo "hello world"
+     *
      * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addOr($command): self
+    public static function addOr($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::OR_OPERATOR);
-        return $this;
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::OR_OPERATOR);
+        return $list;
     }
 
     /**
+     * Returns something like: && echo "hello world"
+     *
      * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addAnd($command): self
+    public static function addAnd($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::AND_OPERATOR);
-        return $this;
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::AND_OPERATOR);
+        return $list;
     }
 
     /**
+     * Returns something like: ; echo "hello world"
+     *
      * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function add($command): self
+    public static function add($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::COMMAND_DELIMITER);
-        return $this;
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::COMMAND_DELIMITER);
+        return $list;
+    }
+
+    /**
+     * Returns something like: & echo "hello world"
+     *
+     * @param string|ShellInterface $command
+     * @return static
+     * @throws ShellBuilderException
+     */
+    public static function async($command): self
+    {
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::BASH_AMPERSAND);
+        return $list;
     }
 }

@@ -213,6 +213,22 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals("echo 'hello' > test.txt", (string)$builder);
     }
 
+    public function testAsyncCommandBuilder(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('hello')->addToBuilder()
+            ->runAsynchronously();
+        $this->assertEquals("coproc echo 'hello'", (string)$builder);
+    }
+
+    public function testAsyncListCommandBuilder(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->createCommand('echo')->addArgument('hello')->addToBuilder()
+            ->async('ls');
+        $this->assertEquals("echo 'hello' & ls", (string)$builder);
+    }
+
     public function testRedirectToAppend(): void
     {
         $builder = new ShellBuilder();
@@ -227,8 +243,8 @@ final class ShellBuilderTest extends TestCase
         $builder->createCommand('mysql')->addArgument('database')->addToBuilder()
             ->redirectInput(
                 $builder->createCommand('mysqldump')
-                    ->addArgument('db', false)
-                    ->addNoSpaceArgument('.sql')
+                    ->addNoSpaceArgument('db')
+                    ->addArgument('.sql', false)
             );
         $this->assertEquals("mysql 'database' < mysqldump db.sql", (string)$builder);
     }
@@ -401,6 +417,48 @@ final class ShellBuilderTest extends TestCase
                 $rsync->createCommand('ssh')
                 ->addShortOption('F', 'php://temp')
             )
+            ->addArgument('hosta:/var/www/prod/var/storage/')
+            ->addArgument('./var/storage/')->addToBuilder();
+        $this->assertEquals($result, (string)$rsync);
+    }
+
+    public function testRsyncCommandWithSubCommandAsOption(): void
+    {
+        $result = "rsync -vvv -az --e 'ssh -F '\''php://temp'\''' 'hosta:/var/www/prod/var/storage/' './var/storage/'";
+        $rsync = new ShellBuilder();
+        $rsync->createCommand('rsync')
+            ->addShortOption('vvv')
+            ->addShortOption('az')
+            ->addOption('e', $rsync->createCommand('ssh')
+                ->addShortOption('F', 'php://temp'))
+            ->addArgument('hosta:/var/www/prod/var/storage/')
+            ->addArgument('./var/storage/')->addToBuilder();
+        $this->assertEquals($result, (string)$rsync);
+    }
+
+    public function testRsyncCommandWithSubCommandAsShortOption(): void
+    {
+        $result = "rsync -vvv -az -e 'ssh -F '\''php://temp'\''' 'hosta:/var/www/prod/var/storage/' './var/storage/'";
+        $rsync = new ShellBuilder();
+        $rsync->createCommand('rsync')
+            ->addShortOption('vvv')
+            ->addShortOption('az')
+            ->addShortOption('e', $rsync->createCommand('ssh')
+                ->addShortOption('F', 'php://temp'))
+            ->addArgument('hosta:/var/www/prod/var/storage/')
+            ->addArgument('./var/storage/')->addToBuilder();
+        $this->assertEquals($result, (string)$rsync);
+    }
+
+    public function testRsyncCommandWithSubCommandAsArgument(): void
+    {
+        $result = "rsync -vvv -az 'ssh -F '\''php://temp'\''' 'hosta:/var/www/prod/var/storage/' './var/storage/'";
+        $rsync = new ShellBuilder();
+        $rsync->createCommand('rsync')
+            ->addShortOption('vvv')
+            ->addShortOption('az')
+            ->addArgument($rsync->createCommand('ssh')
+                ->addShortOption('F', 'php://temp'))
             ->addArgument('hosta:/var/www/prod/var/storage/')
             ->addArgument('./var/storage/')->addToBuilder();
         $this->assertEquals($result, (string)$rsync);

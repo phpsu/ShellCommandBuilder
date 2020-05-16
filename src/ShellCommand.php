@@ -5,23 +5,34 @@ declare(strict_types=1);
 namespace PHPSu\ShellCommandBuilder;
 
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
+use PHPSu\ShellCommandBuilder\Literal\ShellArgument;
+use PHPSu\ShellCommandBuilder\Literal\ShellEnvironmentVariable;
+use PHPSu\ShellCommandBuilder\Literal\ShellExecutable;
+use PHPSu\ShellCommandBuilder\Literal\ShellOption;
+use PHPSu\ShellCommandBuilder\Literal\ShellShortOption;
+use PHPSu\ShellCommandBuilder\Literal\ShellWord;
 
 final class ShellCommand implements ShellInterface
 {
-    /** @var string */
+    /**
+     * @var ShellWord
+     * @psalm-readonly
+     */
     private $executable;
-    /** @var array<array<string|ShellInterface>> */
+    /** @var array<ShellWord> */
     private $arguments = [];
-    /** @var array<string,string> */
+    /** @var array<ShellWord> */
     private $environmentVariables = [];
     /** @var bool  */
     private $isCommandSubstitution = false;
     /** @var ShellBuilder|null */
     private $parentBuilder;
+    /** @var bool */
+    private $invertOutput = false;
 
     public function __construct(string $name, ShellBuilder $builder = null)
     {
-        $this->executable = $name;
+        $this->executable = new ShellExecutable($name);
         $this->parentBuilder = $builder;
     }
 
@@ -39,6 +50,12 @@ final class ShellCommand implements ShellInterface
         return $this;
     }
 
+    public function invert(bool $invert = true): self
+    {
+        $this->invertOutput = $invert;
+        return $this;
+    }
+
     /**
      * @param string $option
      * @param ShellInterface|string|mixed $value
@@ -52,10 +69,8 @@ final class ShellCommand implements ShellInterface
         if (!($value instanceof ShellInterface || is_string($value))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        if ($escapeArgument && is_string($value) && !empty($value)) {
-            $value = escapeshellarg($value);
-        }
-        return $this->add($option, $value, '-', $withAssignOperator ? '=' : ' ');
+        $word = new ShellShortOption($option, $value);
+        return $this->add($word, $escapeArgument, $withAssignOperator);
     }
 
     /**
@@ -71,10 +86,8 @@ final class ShellCommand implements ShellInterface
         if (!($value instanceof ShellInterface || is_string($value))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        if ($escapeArgument && is_string($value) && !empty($value)) {
-            $value = escapeshellarg($value);
-        }
-        return $this->add($option, $value, '--', $withAssignOperator ? '=' : ' ');
+        $word = new ShellOption($option, $value);
+        return $this->add($word, $escapeArgument, $withAssignOperator);
     }
 
     /**
@@ -88,15 +101,21 @@ final class ShellCommand implements ShellInterface
         if (!($argument instanceof ShellInterface || is_string($argument))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        if ($escapeArgument && is_string($argument)) {
-            $argument = escapeshellarg($argument);
-        }
-        return $this->add($argument, '', '');
+        $word = new ShellArgument($argument);
+        return $this->add($word, $escapeArgument);
     }
 
+    /**
+     * This is an alias for argument, that automatically escapes the argument.
+     * It does in the end does not provide any additional functionality
+     *
+     * @param ShellInterface $argument
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function addSubCommand(ShellInterface $argument): self
     {
-        return $this->add($argument, '', 'subcommand');
+        return $this->addArgument($argument, true);
     }
 
     /**
@@ -109,25 +128,23 @@ final class ShellCommand implements ShellInterface
         if (!($argument instanceof ShellInterface || is_string($argument))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        return $this->add($argument, '', '#NOSPACE#');
+        $word = new ShellArgument($argument);
+        $word->setSpaceAfterValue(false);
+        return $this->add($word, false);
     }
 
-    /**
-     * @param string|ShellInterface $argument
-     * @param string|ShellInterface $value
-     * @param string $prefix
-     * @param string $suffix
-     * @return self
-     */
-    private function add($argument, $value = '', string $prefix = '', string $suffix = ' '): self
+    private function add(ShellWord $word, bool $escapeArgument, bool $withAssignOperator = false): self
     {
-        $this->arguments[] = [$prefix, $argument, $suffix, $value];
+        $word->setEscape($escapeArgument);
+        $word->setAssignOperator($withAssignOperator);
+        $this->arguments[] = $word;
         return $this;
     }
 
     public function addEnv(string $name, string $value): self
     {
-        $this->environmentVariables[$name] = $value;
+        $word = new ShellEnvironmentVariable($name, $value);
+        $this->environmentVariables[$name] = $word;
         return $this;
     }
 
@@ -135,26 +152,18 @@ final class ShellCommand implements ShellInterface
     {
         $result = [];
         foreach ($this->arguments as $part) {
-            [$prefix, $argument, $suffix, $value] = $part;
-            if ($prefix === 'subcommand') {
-                $argument = escapeshellarg((string)$argument);
-                $prefix = '';
-            }
-            if ($value) {
-                $value = $suffix . $value;
-            }
-            $result[] = implode('', [$prefix, $argument, $value]);
+            $result[] = $part;
         }
-        return str_replace(' #NOSPACE#', '', implode(' ', $result));
+        return trim(implode('', $result));
     }
 
     private function environmentVariablesToString(): string
     {
-        $envs = [];
-        foreach ($this->environmentVariables as $key => $variable) {
-            $envs[] = sprintf('%s=%s', strtoupper($key), escapeshellarg($variable));
+        $result = [];
+        foreach ($this->environmentVariables as $part) {
+            $result[] = $part;
         }
-        return implode(' ', $envs);
+        return implode('', $result);
     }
 
     /**
@@ -164,27 +173,27 @@ final class ShellCommand implements ShellInterface
     {
         $commands = [];
         foreach ($this->arguments as $item) {
-            [$prefix, $argument, $suffix, $value] = $item;
-            $commands[] = [
-                'prefix' => $prefix,
-                'argument' => $argument instanceof ShellInterface ? $argument->__toArray() : $argument,
-                'suffix' => $suffix,
-                'value' => $value instanceof ShellInterface ? $value->__toArray() : $value,
-            ];
+            $commands[] = $item->__toArray();
+        }
+        $envs = [];
+        foreach ($this->environmentVariables as $item) {
+            $envs[] = $item->__toArray();
         }
         return [
             'executable' => $this->executable,
             'arguments' => $commands,
             'isCommandSubstitution' => $this->isCommandSubstitution,
-            'environmentVariables' => $this->environmentVariables,
+            'environmentVariables' => $envs,
         ];
     }
 
     public function __toString(): string
     {
+        /** @psalm-suppress ImplicitToStringCast */
         $result = (sprintf(
-            '%s%s%s',
-            empty($this->environmentVariables) ? '' : $this->environmentVariablesToString() . ' ',
+            '%s%s%s%s',
+            $this->invertOutput ? '! ' : '',
+            empty($this->environmentVariables) ? '' : $this->environmentVariablesToString(),
             $this->executable,
             empty($this->arguments) ? '' : ' ' . $this->argumentsToString()
         ));
