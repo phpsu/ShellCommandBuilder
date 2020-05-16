@@ -16,10 +16,11 @@ final class Pipeline extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function pipe($command): self
+    public static function pipe($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::PIPELINE);
-        return $this;
+        $pipeline = new self();
+        $pipeline->tuple = $pipeline->toTuple($command, ControlOperator::PIPELINE);
+        return $pipeline;
     }
 
     /**
@@ -27,9 +28,10 @@ final class Pipeline extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function pipeErrorForward($command): self
+    public static function pipeErrorForward($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::PIPELINE_WITH_STDERR_FORWARD);
-        return $this;
+        $pipeline = new self();
+        $pipeline->tuple = $pipeline->toTuple($command, ControlOperator::PIPELINE_WITH_STDERR_FORWARD);
+        return $pipeline;
     }
 }

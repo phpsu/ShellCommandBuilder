@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder;
 
-use PHPSu\ShellCommandBuilder\Collection\CollectionInterface;
 use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Collection\ShellList;
@@ -14,7 +13,7 @@ use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 
 final class ShellBuilder implements ShellInterface
 {
-    /** @var array<ShellInterface|CollectionTuple|CollectionInterface>  */
+    /** @var array<ShellInterface|CollectionTuple>  */
     private $commandList = [];
     /** @var int */
     private $groupType;
@@ -44,9 +43,7 @@ final class ShellBuilder implements ShellInterface
             $this->commandList[] = $command;
             return $this;
         }
-        $list = new ShellList();
-        $list->add($command);
-        $this->commandList[] = $list;
+        $this->commandList[] = ShellList::add($command);
         return $this;
     }
 
@@ -61,9 +58,7 @@ final class ShellBuilder implements ShellInterface
             $command = $this->createCommand($command);
         }
         $this->validateCommand($command);
-        $list = new ShellList();
-        $list->addAnd($command);
-        $this->commandList[] = $list;
+        $this->commandList[] = ShellList::addAnd($command);
         return $this;
     }
 
@@ -78,9 +73,7 @@ final class ShellBuilder implements ShellInterface
             $command = $this->createCommand($command);
         }
         $this->validateCommand($command);
-        $list = new ShellList();
-        $list->addOr($command);
-        $this->commandList[] = $list;
+        $this->commandList[] = ShellList::addOr($command);
         return $this;
     }
 
@@ -95,9 +88,7 @@ final class ShellBuilder implements ShellInterface
             $command = $this->createCommand($command);
         }
         $this->validateCommand($command);
-        $list = new Pipeline();
-        $list->pipe($command);
-        $this->commandList[] = $list;
+        $this->commandList[] = Pipeline::pipe($command);
         return $this;
     }
 
@@ -112,9 +103,7 @@ final class ShellBuilder implements ShellInterface
             $command = $this->createCommand($command);
         }
         $this->validateCommand($command);
-        $list = new Pipeline();
-        $list->pipeErrorForward($command);
-        $this->commandList[] = $list;
+        $this->commandList[] = Pipeline::pipeErrorForward($command);
         return $this;
     }
 

@@ -85,8 +85,8 @@ class ShellCommandTest extends TestCase
                 'escaped' => false,
                 'withAssign' => false,
                 'spaceAfterValue' => true,
-                'value' => '',
-                'argument' => "test",
+                'value' => "test",
+                'argument' => '',
             ]
         ], $command['arguments']);
     }

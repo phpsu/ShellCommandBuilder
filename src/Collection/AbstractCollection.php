@@ -7,7 +7,7 @@ namespace PHPSu\ShellCommandBuilder\Collection;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
-abstract class AbstractCollection implements CollectionInterface
+abstract class AbstractCollection implements ShellInterface
 {
     /** @var CollectionTuple|null */
     protected $tuple;
@@ -21,6 +21,18 @@ abstract class AbstractCollection implements CollectionInterface
     protected function toTuple($command, string $join): CollectionTuple
     {
         return CollectionTuple::create($command, $join);
+    }
+
+    /**
+     * @return array<string|ShellInterface|array<mixed>>
+     * @throws ShellBuilderException
+     */
+    public function __toArray(): array
+    {
+        if ($this->tuple === null) {
+            throw new ShellBuilderException('Tuple has not been set yet - collection cannot be parsed to array');
+        }
+        return $this->tuple->__toArray();
     }
 
     public function __toString(): string

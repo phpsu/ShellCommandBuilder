@@ -5,10 +5,19 @@ declare(strict_types=1);
 namespace PHPSu\ShellCommandBuilder;
 
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
+use PHPSu\ShellCommandBuilder\Literal\ShellArgument;
+use PHPSu\ShellCommandBuilder\Literal\ShellEnvironmentVariable;
+use PHPSu\ShellCommandBuilder\Literal\ShellExecutable;
+use PHPSu\ShellCommandBuilder\Literal\ShellOption;
+use PHPSu\ShellCommandBuilder\Literal\ShellShortOption;
+use PHPSu\ShellCommandBuilder\Literal\ShellWord;
 
 final class ShellCommand implements ShellInterface
 {
-    /** @var string */
+    /**
+     * @var ShellWord
+     * @psalm-readonly
+     */
     private $executable;
     /** @var array<ShellWord> */
     private $arguments = [];
@@ -21,7 +30,7 @@ final class ShellCommand implements ShellInterface
 
     public function __construct(string $name, ShellBuilder $builder = null)
     {
-        $this->executable = $name;
+        $this->executable = new ShellExecutable($name);
         $this->parentBuilder = $builder;
     }
 
@@ -52,8 +61,7 @@ final class ShellCommand implements ShellInterface
         if (!($value instanceof ShellInterface || is_string($value))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        $word = new ShellWord($option, $value);
-        $word->asShortOption();
+        $word = new ShellShortOption($option, $value);
         return $this->add($word, $escapeArgument, $withAssignOperator);
     }
 
@@ -70,8 +78,7 @@ final class ShellCommand implements ShellInterface
         if (!($value instanceof ShellInterface || is_string($value))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        $word = new ShellWord($option, $value);
-        $word->asOption();
+        $word = new ShellOption($option, $value);
         return $this->add($word, $escapeArgument, $withAssignOperator);
     }
 
@@ -86,8 +93,7 @@ final class ShellCommand implements ShellInterface
         if (!($argument instanceof ShellInterface || is_string($argument))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        $word = new ShellWord($argument);
-        $word->asArgument();
+        $word = new ShellArgument($argument);
         return $this->add($word, $escapeArgument);
     }
 
@@ -114,8 +120,8 @@ final class ShellCommand implements ShellInterface
         if (!($argument instanceof ShellInterface || is_string($argument))) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
-        $word = new ShellWord($argument);
-        $word->asArgument()->setSpaceAfterValue(false);
+        $word = new ShellArgument($argument);
+        $word->setSpaceAfterValue(false);
         return $this->add($word, false);
     }
 
@@ -129,9 +135,7 @@ final class ShellCommand implements ShellInterface
 
     public function addEnv(string $name, string $value): self
     {
-        $word = new ShellWord($name, $value);
-        $word->asEnvironmentVariable();
-        $word->setAssignOperator(true);
+        $word = new ShellEnvironmentVariable($name, $value);
         $this->environmentVariables[$name] = $word;
         return $this;
     }
@@ -177,6 +181,7 @@ final class ShellCommand implements ShellInterface
 
     public function __toString(): string
     {
+        /** @psalm-suppress ImplicitToStringCast */
         $result = (sprintf(
             '%s%s%s',
             empty($this->environmentVariables) ? '' : $this->environmentVariablesToString(),

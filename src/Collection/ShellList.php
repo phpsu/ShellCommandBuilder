@@ -15,10 +15,11 @@ final class ShellList extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addOr($command): self
+    public static function addOr($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::OR_OPERATOR);
-        return $this;
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::OR_OPERATOR);
+        return $list;
     }
 
     /**
@@ -26,10 +27,11 @@ final class ShellList extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addAnd($command): self
+    public static function addAnd($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::AND_OPERATOR);
-        return $this;
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::AND_OPERATOR);
+        return $list;
     }
 
     /**
@@ -37,9 +39,10 @@ final class ShellList extends AbstractCollection
      * @return $this
      * @throws ShellBuilderException
      */
-    public function add($command): self
+    public static function add($command): self
     {
-        $this->tuple = $this->toTuple($command, ControlOperator::COMMAND_DELIMITER);
-        return $this;
+        $list = new self();
+        $list->tuple = $list->toTuple($command, ControlOperator::COMMAND_DELIMITER);
+        return $list;
     }
 }
