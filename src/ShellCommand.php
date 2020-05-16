@@ -91,11 +91,17 @@ final class ShellCommand implements ShellInterface
         return $this->add($word, $escapeArgument);
     }
 
+    /**
+     * This is an alias for argument, that automatically escapes the argument.
+     * It does in the end does not provide any additional functionality
+     *
+     * @param ShellInterface $argument
+     * @return $this
+     * @throws ShellBuilderException
+     */
     public function addSubCommand(ShellInterface $argument): self
     {
-        $word = new ShellWord($argument);
-        $word->asSubCommand();
-        return $this->add($word, true);
+        return $this->addArgument($argument, true);
     }
 
     /**

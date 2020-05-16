@@ -39,7 +39,6 @@ final class ShellWordTest extends TestCase
         $this->assertEquals(
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => true,
                 'isEnvironmentVariable' => false,
@@ -61,7 +60,6 @@ final class ShellWordTest extends TestCase
         $this->assertEquals(
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => true,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
@@ -83,13 +81,12 @@ final class ShellWordTest extends TestCase
     public function testShellWordSubCommandAsShellInterfaceToDebugArray(): void
     {
         $word = new ShellWord((new ShellCommand('hello'))->toggleCommandSubstitution());
-        $word->asSubCommand();
         $word->setSpaceAfterValue(false);
+        $word->asArgument();
         $array = $word->__toArray();
         $this->assertEquals(
             [
-                'isArgument' => false,
-                'isSubcommand' => true,
+                'isArgument' => true,
                 'isShortOption' => false,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
@@ -114,11 +111,11 @@ final class ShellWordTest extends TestCase
         $word->asArgument();
         $word->asOption();
         $word->asShortOption();
-        $word->asSubCommand();
+        $word->setEscape(true);
+        $word->asArgument();
         $this->assertEquals(
             [
-                'isArgument' => false,
-                'isSubcommand' => true,
+                'isArgument' => true,
                 'isShortOption' => false,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
@@ -140,7 +137,6 @@ final class ShellWordTest extends TestCase
         $this->assertEquals(
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => true,
                 'isEnvironmentVariable' => false,
@@ -157,13 +153,12 @@ final class ShellWordTest extends TestCase
     public function testResetFlagOnSettingItTwiceForShortOption(): void
     {
         $word = new ShellWord('hallo', 'value');
-        $word->asSubCommand();
+        $word->asArgument();
         $word->asShortOption();
         $word->setEscape(false);
         $this->assertEquals(
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => true,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
@@ -196,7 +191,6 @@ final class ShellWordTest extends TestCase
         $this->assertEquals(
             [
                 'isArgument' => true,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,

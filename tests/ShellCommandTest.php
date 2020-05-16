@@ -60,7 +60,6 @@ class ShellCommandTest extends TestCase
         $this->assertEquals([
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => true,
                 'isEnvironmentVariable' => false,
@@ -80,7 +79,6 @@ class ShellCommandTest extends TestCase
         $this->assertEquals([
             [
                 'isArgument' => true,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
@@ -114,7 +112,6 @@ class ShellCommandTest extends TestCase
         $this->assertEquals([
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => false,
                 'isEnvironmentVariable' => true,
@@ -128,7 +125,6 @@ class ShellCommandTest extends TestCase
         $this->assertEquals([
             [
                 'isArgument' => false,
-                'isSubcommand' => false,
                 'isShortOption' => false,
                 'isOption' => true,
                 'isEnvironmentVariable' => false,

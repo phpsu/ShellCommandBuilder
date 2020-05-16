@@ -19,8 +19,6 @@ final class ShellWord implements ShellInterface
     /** @var bool  */
     private $isArgument = false;
     /** @var bool  */
-    private $isSubcommand = false;
-    /** @var bool  */
     private $isEnvironmentVariable = false;
     /** @var bool  */
     private $isEscaped = true;
@@ -72,13 +70,6 @@ final class ShellWord implements ShellInterface
         return $this;
     }
 
-    public function asSubCommand(): self
-    {
-        $this->reset();
-        $this->isSubcommand = true;
-        return $this;
-    }
-
     public function asEnvironmentVariable(): self
     {
         $this->reset();
@@ -109,7 +100,6 @@ final class ShellWord implements ShellInterface
         $this->isOption = false;
         $this->isShortOption = false;
         $this->isArgument = false;
-        $this->isSubcommand = false;
     }
 
     private function validate(): void
@@ -123,13 +113,13 @@ final class ShellWord implements ShellInterface
         if (!(is_string($this->argument) || $this->argument instanceof ShellInterface)) {
             throw new ShellBuilderException('Argument must be an instance of ShellInterface or a string');
         }
-        if (!($this->isOption || $this->isShortOption || $this->isSubcommand || $this->isArgument || $this->isEnvironmentVariable)) {
+        if (!($this->isOption || $this->isShortOption || $this->isArgument || $this->isEnvironmentVariable)) {
             throw new ShellBuilderException('No ShellWord-Type defined - use e.g. asArgument() to define it');
         }
-        if (($this->isArgument || $this->isSubcommand) && is_string($this->value) && !empty($this->value)) {
+        if ($this->isArgument && is_string($this->value) && !empty($this->value)) {
             throw new ShellBuilderException('An argument cant have a value');
         }
-        if (($this->isArgument || $this->isSubcommand) && $this->value instanceof ShellInterface) {
+        if ($this->isArgument && $this->value instanceof ShellInterface) {
             throw new ShellBuilderException('An argument cant have a value');
         }
         if ($this->isEnvironmentVariable && !(is_string($this->value) && is_string($this->argument))) {
@@ -151,7 +141,7 @@ final class ShellWord implements ShellInterface
         if ($this->useAssignOperator) {
             $this->delimiter = self::EQUAL_CONTROL;
         }
-        if ($this->isSubcommand || $this->isArgument) {
+        if ($this->isArgument) {
             $this->delimiter = '';
         }
         if (($this->isShortOption || $this->isOption) && empty($this->value)) {
@@ -175,7 +165,7 @@ final class ShellWord implements ShellInterface
             }
             $word = (string)$word;
         }
-        if ($this->isEscaped && ($this->isArgument || $this->isSubcommand) && !empty($word)) {
+        if ($this->isEscaped && $this->isArgument && !empty($word)) {
             $word = escapeshellarg($word);
         }
         return $word;
@@ -209,7 +199,6 @@ final class ShellWord implements ShellInterface
         $this->validate();
         return [
             'isArgument' => $this->isArgument,
-            'isSubcommand' => $this->isSubcommand,
             'isShortOption' => $this->isShortOption,
             'isOption' => $this->isOption,
             'isEnvironmentVariable' => $this->isEnvironmentVariable,
