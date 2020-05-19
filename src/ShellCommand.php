@@ -25,6 +25,8 @@ final class ShellCommand implements ShellInterface
     private $environmentVariables = [];
     /** @var bool  */
     private $isCommandSubstitution = false;
+    /** @var bool  */
+    private $isProcessSubstitution = false;
     /** @var ShellBuilder|null */
     private $parentBuilder;
     /** @var bool */
@@ -47,6 +49,12 @@ final class ShellCommand implements ShellInterface
     public function toggleCommandSubstitution(): self
     {
         $this->isCommandSubstitution = !$this->isCommandSubstitution;
+        return $this;
+    }
+
+    public function isProcessSubstitution(bool $enable = true): self
+    {
+        $this->isProcessSubstitution = $enable;
         return $this;
     }
 
@@ -180,7 +188,7 @@ final class ShellCommand implements ShellInterface
             $envs[] = $item->__toArray();
         }
         return [
-            'executable' => $this->executable,
+            'executable' => $this->executable->__toString(),
             'arguments' => $commands,
             'isCommandSubstitution' => $this->isCommandSubstitution,
             'environmentVariables' => $envs,
@@ -197,8 +205,11 @@ final class ShellCommand implements ShellInterface
             $this->executable,
             empty($this->arguments) ? '' : ' ' . $this->argumentsToString()
         ));
-        if ($this->isCommandSubstitution) {
+        if ($this->isCommandSubstitution && !$this->isProcessSubstitution) {
             return sprintf("\$(%s)", $result);
+        }
+        if ($this->isProcessSubstitution && !$this->isCommandSubstitution) {
+            return sprintf("<(%s)", $result);
         }
         return $result;
     }

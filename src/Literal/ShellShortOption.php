@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Literal;
 
+use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
 final class ShellShortOption extends ShellWord
@@ -15,6 +16,7 @@ final class ShellShortOption extends ShellWord
      * ShellArgument constructor.
      * @param string $option
      * @param ShellInterface|string $value
+     * @throws ShellBuilderException
      */
     public function __construct(string $option, $value)
     {

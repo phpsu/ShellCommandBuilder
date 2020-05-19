@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Literal;
 
+use PHPSu\ShellCommandBuilder\Definition\Pattern;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
@@ -50,9 +51,13 @@ class ShellWord implements ShellInterface
      * The constructor is protected, you must choose one of the children
      * @param string $argument
      * @param string|ShellInterface $value
+     * @throws ShellBuilderException
      */
     protected function __construct(string $argument, $value = '')
     {
+        if (!empty($argument) && !$this->validShellWord($argument)) {
+            throw new ShellBuilderException('A Shell Argument has to be a valid Shell word and cannot contain e.g whitespace');
+        }
         $this->argument = $argument;
         $this->value = $value;
     }
@@ -87,6 +92,17 @@ class ShellWord implements ShellInterface
         if (!(is_string($this->value) || $this->value instanceof ShellInterface)) {
             throw new ShellBuilderException('Value must be an instance of ShellInterface or a string');
         }
+    }
+
+    /**
+     * @psalm-pure
+     * @param string $word
+     * @return bool
+     * @throws ShellBuilderException
+     */
+    private function validShellWord(string $word): bool
+    {
+        return count(Pattern::split($word)) === 1;
     }
 
     private function prepare(): void

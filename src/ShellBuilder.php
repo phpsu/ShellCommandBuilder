@@ -8,6 +8,7 @@ use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Collection\Redirection;
 use PHPSu\ShellCommandBuilder\Collection\ShellList;
+use PHPSu\ShellCommandBuilder\Conditional\BasicExpression;
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
@@ -21,6 +22,15 @@ final class ShellBuilder implements ShellInterface
     private $groupType;
     /** @var bool */
     private $asynchronously = false;
+
+    /**
+     * This is a shortcut for quicker fluid access to the shell builder
+     * @return static
+     */
+    public static function new(): self
+    {
+        return new ShellBuilder();
+    }
 
     public function __construct(int $groupType = GroupType::NO_GROUP)
     {
@@ -162,6 +172,12 @@ final class ShellBuilder implements ShellInterface
     public function redirectErrorToOutput(): self
     {
         $this->commandList[] = Redirection::redirectErrorToOutput();
+        return $this;
+    }
+
+    public function addCondition(BasicExpression $condition): self
+    {
+        $this->commandList[] = $condition;
         return $this;
     }
 

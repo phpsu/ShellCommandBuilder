@@ -47,6 +47,29 @@ class ShellCommandTest extends TestCase
         $this->assertEquals("ls -ld $(date +%B).txt", (string)$command);
     }
 
+    public function testShellCommandWithProcessSubstitution(): void
+    {
+        $command = new ShellCommand('diff');
+        $command->addArgument((new ShellCommand('date'))
+                    ->addArgument('+%B', false)
+                    ->isProcessSubstitution(), false);
+        $this->assertEquals("diff <(date +%B)", (string)$command);
+    }
+
+    public function testSwitchSubstitutionType(): void
+    {
+        $subCommand = (new ShellCommand('date'))
+            ->addArgument('+%B', false)
+            ->isProcessSubstitution();
+        $command = new ShellCommand('diff');
+        $command->addArgument($subCommand, false);
+        $this->assertEquals("diff <(date +%B)", (string)$command);
+        $subCommand->toggleCommandSubstitution();
+        $this->assertEquals("diff date +%B", (string)$command);
+        $subCommand->isProcessSubstitution(false);
+        $this->assertEquals("diff $(date +%B)", (string)$command);
+    }
+
     public function testShellCommandWithInvertedOutput(): void
     {
         $command = new ShellCommand('echo');
