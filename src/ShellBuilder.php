@@ -8,6 +8,7 @@ use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Collection\Redirection;
 use PHPSu\ShellCommandBuilder\Collection\ShellList;
+use PHPSu\ShellCommandBuilder\Conditional\BasicExpression;
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
@@ -171,6 +172,12 @@ final class ShellBuilder implements ShellInterface
     public function redirectErrorToOutput(): self
     {
         $this->commandList[] = Redirection::redirectErrorToOutput();
+        return $this;
+    }
+
+    public function addCondition(BasicExpression $condition): self
+    {
+        $this->commandList[] = $condition;
         return $this;
     }
 

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Tests;
 
+use PHPSu\ShellCommandBuilder\Conditional\ArithmeticExpression;
+use PHPSu\ShellCommandBuilder\Conditional\FileExpression;
+use PHPSu\ShellCommandBuilder\Conditional\StringExpression;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellBuilder;
 use PHPUnit\Framework\TestCase;
@@ -464,10 +467,116 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals($result, (string)$rsync);
     }
 
+    public function testCommandProcessSubstitutionChain(): void
+    {
+        // this example has been taken from: https://stackoverflow.com/questions/11003039/python-execute-complex-shell-command
+        $builder = ShellBuilder::new()->createCommand('diff')
+            ->addArgument(
+                ShellBuilder::new()->createCommand('ssh')
+                    ->addShortOption('n', 'root@10.22.254.34', false)
+                    ->addArgument('cat', false)
+                    ->addArgument('/vms/cloudburst.qcow2.*', false)
+                    ->isProcessSubstitution(),
+                false
+            )
+            ->addArgument(
+                ShellBuilder::new()->createCommand('ssh')
+                    ->addShortOption('n', 'root@10.22.254.101', false)
+                    ->addArgument('cat', false)
+                    ->addArgument('/vms/cloudburst.qcow2', false)
+                    ->isProcessSubstitution(),
+                false
+            );
+        $result = 'diff <(ssh -n root@10.22.254.34 cat /vms/cloudburst.qcow2.*) <(ssh -n root@10.22.254.101 cat /vms/cloudburst.qcow2)';
+        $this->assertEquals($result, (string)$builder);
+    }
+
     public function testCreateCommandWithBadArgument(): void
     {
         $this->expectException(ShellBuilderException::class);
         $this->expectExceptionMessage('A Shell Argument has to be a valid Shell word and cannot contain e.g whitespace');
         ShellBuilder::new()->createCommand('this is not a valid command');
+    }
+
+    public function testCondition(): void
+    {
+        $command = ShellBuilder::new()->addCondition(ArithmeticExpression::create()->equal('a', 'b'));
+        $this->assertEquals('[[ a -eq b ]]', (string)$command);
+    }
+
+    public function testChainingConditionIntoCommmand(): void
+    {
+        $command = ShellBuilder::new()->add('a')->and('b')->and(FileExpression::create(true)->isSocket('unix:///dev'));
+        $this->assertEquals('a && b && [[ -S "unix:///dev" ]]', (string)$command);
+    }
+
+    public function testChainingConditionIntoCommmandNotEscaped(): void
+    {
+        $command = ShellBuilder::new()
+            ->add('a')
+            ->and('b')
+            ->and(FileExpression::create(true)->isSocket('unix:///dev')->escapeValue(false));
+        $this->assertEquals('a && b && [[ -S unix:///dev ]]', (string)$command);
+    }
+
+    public function testSimpleConditionToDebug(): void
+    {
+        $command = ShellBuilder::new()->addCondition(ArithmeticExpression::create(true, true)->equal('a', 'b'));
+        $this->assertEquals([0 => [
+            'bashBrackets' => true,
+            'negate' => true,
+            'compare' => 'a',
+            'operator' => '-eq',
+            'compareWith' => 'b'
+        ]], $command->__toArray());
+
+        $command = ShellBuilder::new()->addCondition(FileExpression::create(true)->isOlderThan('a', 'b'));
+        $this->assertEquals([0 => [
+            'bashBrackets' => true,
+            'negate' => false,
+            'compare' => 'a',
+            'operator' => '-ot',
+            'compareWith' => 'b'
+        ]], $command->__toArray());
+
+        $command = ShellBuilder::new()->addCondition(StringExpression::create(false, true)->equal('a', 'b'));
+        $this->assertEquals([0 => [
+            'bashBrackets' => true,
+            'negate' => true,
+            'compare' => 'a',
+            'operator' => '==',
+            'compareWith' => 'b'
+        ]], $command->__toArray());
+
+        $command = ShellBuilder::new()->addCondition(StringExpression::create(false, true)->eq('a', 'b'));
+        $this->assertEquals([0 => [
+            'bashBrackets' => false,
+            'negate' => true,
+            'compare' => 'a',
+            'operator' => '=',
+            'compareWith' => 'b'
+        ]], $command->__toArray());
+
+        $command = ShellBuilder::new()->addCondition(StringExpression::create()->eq('a', 'b'));
+        $this->assertEquals([0 => [
+            'bashBrackets' => true,
+            'negate' => false,
+            'compare' => 'a',
+            'operator' => '=',
+            'compareWith' => 'b'
+        ]], $command->__toArray());
+    }
+
+    public function testCommandDebugWithPipeAndCondition(): void
+    {
+        $command = new ShellBuilder();
+        $command->addCondition(ArithmeticExpression::create()->notEqual($command->createCommand('cat'), 'b'));
+        $command->and('a')->pipe('grep');
+        $debug = $command->__toArray();
+        $this->assertCount(3, $debug);
+        // checking whether it deeply arrayfies
+        $this->assertEquals('cat', $debug[0]['compare']['executable']);
+        $this->assertEquals('&&', $debug[1][0]);
+        $this->assertEquals('|', $debug[2][0]);
     }
 }
