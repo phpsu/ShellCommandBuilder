@@ -8,6 +8,10 @@ use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class ShellList extends AbstractCollection
 {
     /**

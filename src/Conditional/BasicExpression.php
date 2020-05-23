@@ -7,6 +7,10 @@ namespace PHPSu\ShellCommandBuilder\Conditional;
 use PHPSu\ShellCommandBuilder\Definition\ConditionalOperator;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 abstract class BasicExpression implements ShellInterface
 {
     /**

@@ -9,6 +9,10 @@ use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellCommand;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class Pipeline extends AbstractCollection
 {
     /**

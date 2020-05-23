@@ -7,6 +7,10 @@ namespace PHPSu\ShellCommandBuilder\Literal;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class ShellShortOption extends ShellWord
 {
     protected $isShortOption = true;

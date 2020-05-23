@@ -7,6 +7,10 @@ namespace PHPSu\ShellCommandBuilder\Collection;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class CollectionTuple implements ShellInterface
 {
     /** @var string */
