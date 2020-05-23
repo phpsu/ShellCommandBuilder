@@ -14,7 +14,7 @@ use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use TypeError;
 
-final class ShellBuilder implements ShellInterface
+final class ShellBuilder implements ShellInterface, \JsonSerializable
 {
     /** @var array<ShellInterface|CollectionTuple>  */
     private $commandList = [];
@@ -30,6 +30,16 @@ final class ShellBuilder implements ShellInterface
     public static function new(): self
     {
         return new ShellBuilder();
+    }
+
+    /**
+     * This is a shortcut for quicker fluid access to the command api
+     * @param string $executable
+     * @return ShellCommand
+     */
+    public static function command(string $executable): ShellCommand
+    {
+        return new ShellCommand($executable, new self());
     }
 
     public function __construct(int $groupType = GroupType::NO_GROUP)
@@ -211,6 +221,11 @@ final class ShellBuilder implements ShellInterface
         if (!$allowEmpty && empty($this->commandList)) {
             throw new ShellBuilderException('You have to first add a command before you can combine it');
         }
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->__toArray();
     }
 
     /**

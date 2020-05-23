@@ -579,4 +579,13 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals('&&', $debug[1][0]);
         $this->assertEquals('|', $debug[2][0]);
     }
+
+    public function testJsonSerializeShellBuilder(): void
+    {
+        // command example from documentation
+        $echo = ShellBuilder::command('echo')->addArgument('hello world');
+        $grep = ShellBuilder::command('echo')->addShortOption('e', 'world');
+        $builder = ShellBuilder::new()->add($echo)->pipe($grep);
+        $this->assertJson(json_encode($builder));
+    }
 }
