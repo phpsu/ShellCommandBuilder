@@ -6,6 +6,10 @@ namespace PHPSu\ShellCommandBuilder\Literal;
 
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class ShellEnvironmentVariable extends ShellWord
 {
     protected $isEnvironmentVariable = true;

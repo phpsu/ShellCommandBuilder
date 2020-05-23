@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Literal;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class ShellExecutable extends ShellWord
 {
     protected $isArgument = true;

@@ -12,6 +12,10 @@ use PHPSu\ShellCommandBuilder\Literal\ShellOption;
 use PHPSu\ShellCommandBuilder\Literal\ShellShortOption;
 use PHPSu\ShellCommandBuilder\Literal\ShellWord;
 
+/**
+ * @internal
+ * @psalm-internal PHPSu\ShellCommandBuilder
+ */
 final class ShellCommand implements ShellInterface
 {
     /**
