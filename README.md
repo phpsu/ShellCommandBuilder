@@ -48,7 +48,7 @@ $builder
 1. [Installation](#installation)
 2. [Usage](#usage)
     1. [Simple Commands](#simple-commands)
-    2. [Pipelines, Lists and Redirections](#pipelines-lists-and-redirections)
+    2. [Pipelines, Lists, and Redirections](#pipelines-lists-and-redirections)
     4. [Complex Commands](#complex-commands)
     5. [Conditional Expressions](#conditional-expressions)
     6. [Coprocess](#coprocess)
@@ -82,7 +82,7 @@ The ShellBuilder is the glue that holds a collection of commands together.
 The glue is one of the control operators like `||` or `&&`.<br/>
 Commands are represented by the ShellCommand-Class.
 The ShellCommand is responsible for the arguments and options etc.<br />
-A ShellCommand is composed of ShellWords, they represent the tokens that make up command.
+A ShellCommand is composed of ShellWords, they represent the tokens that make up a command.
 
 Let's look at an example:
 ```shell script
@@ -104,21 +104,21 @@ Taking apart each of those commands returns the following ShellWords:
 
 Much of the API is marked internal, it is meant to be accessed through the `ShellBuilder`-Class.
 <br />This should make it very straight-forward to build simple and more complex commands from one basis.<br />
-Additionally does the `ShellBuilder` have Factory-style methods, that help building commands top to bottom in a go. 
+Additionally, the `ShellBuilder` has factory-style methods that help building commands top to bottom in an instant.
 
 That means, creating a `ShellBuilder` can look like this:
 ```php
 $builder = new ShellBuilder();
 ```
-or alternatively like this:
+or like this:
 ```php
 $builder = ShellBuilder::new();
 ```
-and a ShellCommand can be created like this
+A ShellCommand can be created like this:
 ```php
 $command = ShellBuilder::command('name-of-command');
 ```
-or, if an an instance of ShellBuilder is already available, like this
+or, if there is already a ShellBuilder-object available, like this
 ```php
 /** @var \PHPSu\ShellCommandBuilder\ShellBuilder $builder */
 $builder->createCommand('name-of-command');
@@ -145,19 +145,18 @@ $echo->addArgument('Hello World');
 $grep = ShellBuilder::command('grep');
 
 // 4. and add the option '-e "world"'.
-// the option "e" is preceeded by a single hypen, therefore it's a *short* option
-// if it would have two hypens e.g --color, then its a regular option.
-// But in both cases, typing the hypens is not necessary and might be forbidden in a future version.
+// the single hyphen that is before the option "e" marks it as a *short* option (addShortOption)
+// Having two hyphens like --color makes it a regular option (addOption)
 $grep->addShortOption('e', 'world');
 
-// 5. Now we need to glow the two commands together
+// 5. Now we need combine those two commands together
 // We do that, by creating a ShellBuilder
 $builder = ShellBuilder::new();
 
 // 6. And then adding the echo-command into it
 $builder->add($echo);
 
-// 7. Earlier we saw, that these two commands where hold together by the pipe-Operator
+// 7. Earlier we saw, that these two commands where held together by the pipe-Operator
 // This can be accomplished by using the pipe-Method 
 $builder->pipe($grep);
 
@@ -166,9 +165,8 @@ shell_exec((string)$builder); // -> echo 'hello world' | echo -e 'world'
 ```
 > Note: Every argument and option is escaped by default.
 
-Every method is fluid. Alternatively to creating the commands one by one, everything can be done written top to bottom.
-
-The following example returns the exact same thing as the one above.
+All methods implement the fluent interface.
+For this library that means that you can rewrite the example above by chaining everything together:
 
 ```php
 <?php
@@ -186,20 +184,20 @@ $builder = ShellBuilder::new()
 shell_exec((string)$builder); // -> echo 'hello world' | echo -e 'world'
 ```
 
-How this works, is, that `createCommand` passes the current ShellBuilder into the ShellCommand-Instance.
-Through `addToBuilder` that ShellBuilder can be accessed again and the command is automatically added to the ShellBuilder.
+The `createCommand` passes the current ShellBuilder into the ShellCommand-Instance.
+Through `addToBuilder` that ShellBuilder can be accessed again, and the command is automatically added to the ShellBuilder.
 This currently only works for `and`.  
 
-#### Pipelines, Lists and Redirections
+#### Pipelines, Lists, and Redirections
 
-The ShellBuilder is the representation of what holds commands together.
-Whether it is to execute commands sequentially or to connect input and output.
+The ShellBuilder is a representation of what holds commands together.
+Whether it is to execute commands sequentially, or to connect input and output.
 
 Let's look at this following fake example:<br/>
 `a; b && c | d || e |& f 2>&1`<br />
-It containts various ways of connecting commands together
+It illustrates the various ways of connecting commands together.
 
-To re-build this command, 
+Rebuilding this command could look like this: 
 
 ```php
 <?php
@@ -227,14 +225,14 @@ The full list of methods can be found here: [API Docs](/docs/api.md)
 
 #### Complex Commands
 
-The intend for this library is to make generating larger and complex shell commands more approachable.<br />
+The idea behind this library is to make generating larger and complex shell commands more readable and maintainable.<br />
 The following example is taken out of PHPsu. This command syncs a database from a remote source to a local database.
 
 ```shell script
 ssh -F 'php://temp' 'hostc' 'mysqldump --opt --skip-comments --single-transaction --lock-tables=false -h '\''database'\'' -u '\''root'\'' -p '\''root'\'' '\''sequelmovie'\'' | (echo '\''CREATE DATABASE IF NOT EXISTS `sequelmovie2`;USE `sequelmovie2`;'\'' && cat)' | mysql -h '127.0.0.1' -P 2206 -u 'root' -p 'root'
 ```
 
-First, we have to think about the components that this command is build of.
+First, we have to think about the components that this command is composed of.
 This results in these commands:
 ```shell script
 ssh -F 'php://temp' 'hostc'
@@ -248,7 +246,7 @@ cat
 mysql -h '127.0.0.1' -P 2206 -u 'root' -p 'root'
 ```
 
-Now let's look how that would look like:
+Now, we build this in PHP:
 
 ```php
 <?php
@@ -256,8 +254,9 @@ Now let's look how that would look like:
 use PHPSu\ShellCommandBuilder\ShellBuilder;
 
 $builder = new ShellBuilder();
-// creating a command. The 'true' indicates, that the command does not know of its builder
-// This is the same result, as is we did ShellBuilder::command()
+// creating the first command.
+// The 'true' removes the connection between ShellBuilder and ShellCommand and makes it anonymous.
+// This is the same result as ShellBuilder::command()
 $mysqlDump = $builder->createCommand('mysqldump', true)
 // adding the options and short-options
     ->addOption('opt')
@@ -300,10 +299,10 @@ $builder->createCommand('ssh')
 ;
 ```
 
-In the next example, we take a look at how to achieve process and command substition.
-The following is again a complete nonsense example.
+Next, we take a look at how to achieve process and command substition.
+The following is again a mock example.
 It creates a list of all php-files in the current and all below directories, sorted and enriched with the size.
-Those file-list is redirected into a txt-file with the current month-name as filename.
+This file-list is redirected into a txt-file with the current month-name as filename.
 
 ```shell script
 cat <(ls -1ARSsD | grep ".*\.php") >> $(date +%B).txt
@@ -324,9 +323,9 @@ $builder = ShellBuilder::new()
 // the same would work with `createCommandSubstition` resulting in something like this $(command ...)
         ->createProcessSubstition()
         ->createCommand('ls')
-// currently combining short-options has to be done manually, this might change in the future
-// but doing it like this will always be possible, since its impossible to evaluate the correctness
-// without having the man-page of all commands available
+// currently combining short-options has to be done manually, although it could change in the future
+// but doing it like this will always be possible, since it's impossible to evaluate the correctness
+// without having the man-page of all the commands available
         ->addShortOption('1ARSsD')
         ->addToBuilder()
         ->pipe(
@@ -342,8 +341,8 @@ $builder = ShellBuilder::new()
         ShellBuilder::new()
             ->createCommand('date')
             ->addArgument('+%B', false)
-// this is similar to the process/command-substitition from above but here applied on a command instead
-// toggling means that instead of taking true or false as argument it flips the internal state back and forth
+// this is similar to the process/command-substitition from above but here it is applied on a command instead
+// toggling means that instead of taking true or false as an argument it flips the internal state back and forth
             ->toggleCommandSubstitution()
             ->addToBuilder()
             ->addFileEnding('txt'),
@@ -354,12 +353,12 @@ $builder = ShellBuilder::new()
 
 #### Conditional Expressions
 
-Conditional Expressions are currently work in progress. The basic API stand but the overall usage might change, especially when it comes down to escaping.
+Conditional Expressions are currently a work in progress. The basic API stands, but the overall usage might change, especially when it comes down to escaping.
 
-There are multiple possible conditional-expression-types, that can be used to build expressions.
+There are multiple conditional-expression-types that can be used to built expressions.
 They are build upon the [Shell-Syntax Bash Reference](https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html).
 
-These types exist:
+The following expression-types exist:
 - Artihmetic: ArithmeticExpression::class
 - File: FileExpression::class
 - Shell: ShellExpression::class
@@ -402,7 +401,7 @@ ShellBuilder::new()
 
 #### Coprocess
 
-To run commands in background, the ShellBuilder class supports the `coproc` keyword.
+To run commands in the background, the ShellBuilder class supports the `coproc` keyword.
 <br /> This keyword lets the command run asynchronously in a subshell and can be combined with pipes and redirections.
 
 More information on Coprocesses can be found [in the Bash Reference](https://www.gnu.org/software/bash/manual/html_node/Coprocesses.html).
@@ -437,17 +436,17 @@ $builder->runAsynchronously(true)
         false
     )
     ->addToBuilder()
-// redirectDescriptor is the more powerfull way of writing redirects bewtween File Descriptors
+// redirectDescriptor is the more powerful way of writing redirects between File Descriptors
 // argument 1: command that we redirect from/to
 // argument 2: direction of the redirect (true: >&, false <&)
 // argument 3: file descriptor before redirection
 // argument 4: file descriptor after redirection
-// so this example below would render: >&3
+// the example below would render: >&3
     ->redirectDescriptor('', true, null, 3);
 ShellBuilder::new()->add($builder)->redirectDescriptor('', true, 3, 1);            
 ```
 
-If you want to direct a single or command or a list of commands into the background, you can achieve that by appending an ampersand `&` at the end of a command.
+If you want to direct a single command or a list of commands into the background, you can achieve that by appending an ampersand `&` at the end of a command.
 
 So maybe you want to do this:
 `./import-script & ./import-script2 &`
@@ -464,8 +463,8 @@ ShellBuilder::new()->add('./import-script')->async('./import-script2')->async();
 
 #### Pattern-Class - ShellWord parsing
 
-The pattern-class is to validate string inputs as valid Bourne Shellwords.
-It is based on its equivalents in the [Ruby](https://ruby-doc.org/stdlib-2.5.1/libdoc/shellwords/rdoc/Shellwords.html) and Rust languages.
+The pattern-class validates string inputs as valid Bourne Shellwords.
+It is based on its equivalent implementations in the [Ruby](https://ruby-doc.org/stdlib-2.5.1/libdoc/shellwords/rdoc/Shellwords.html) and Rust languages.
 <br/>
 It takes a string and applies the word parsing rules of shell to split it into an array.
 
@@ -488,7 +487,7 @@ Pattern::split('a "b b" a');
 // ['a', 'b b', 'a']
 ```
 
-The method will throw an exception if there is invalid input.
+The method will throw an exception if there is an invalid input.
 <br />
 For example the following has an unmatched quoting:
 
@@ -503,7 +502,7 @@ Pattern::split("a \"b c d e");
 
 Sometimes there is a need to better understand why the output is rendered the way it is.
 <br />
-For those situations, all classes implement a `__toArray()`-method, that take the current class-state and print it as array.
+For those situations, all classes implement a `__toArray()`-method, that take the current class-state and print it as an array.
 The `ShellBuilder` additionally implements `jsonSerializable`.
 It itself calls the `__toArray`-method and is meant as a shortcut for outputting to a client.
 
