@@ -7,6 +7,7 @@ namespace PHPSu\ShellCommandBuilder\Tests;
 use PHPSu\ShellCommandBuilder\Conditional\ArithmeticExpression;
 use PHPSu\ShellCommandBuilder\Conditional\FileExpression;
 use PHPSu\ShellCommandBuilder\Conditional\StringExpression;
+use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellBuilder;
 use PHPUnit\Framework\TestCase;
@@ -584,8 +585,116 @@ final class ShellBuilderTest extends TestCase
     {
         // command example from documentation
         $echo = ShellBuilder::command('echo')->addArgument('hello world');
-        $grep = ShellBuilder::command('echo')->addShortOption('e', 'world');
+        $grep = ShellBuilder::command('grep')->addShortOption('e', 'world');
         $builder = ShellBuilder::new()->add($echo)->pipe($grep);
         $this->assertJson(json_encode($builder));
+    }
+
+    public function testShellBuilderProcessSubstitions(): void
+    {
+        $result = "cat <(ls -1ARSsD | grep '.*\.php') >> $(date +%B).txt";
+        $builder = ShellBuilder::new()
+            ->createCommand('cat')
+            ->addArgument(
+                ShellBuilder::new()
+                ->createProcessSubstition()
+                ->createCommand('ls')
+                ->addShortOption('1ARSsD')
+                ->addToBuilder()
+                ->pipe(
+                    ShellBuilder::command('grep')
+                    ->addArgument('.*\.php')
+                ),
+                false
+            )
+            ->addToBuilder()
+            ->redirectOutput(
+                ShellBuilder::new()
+                    ->createCommand('date')
+                    ->addArgument('+%B', false)
+                    ->toggleCommandSubstitution()
+                    ->addToBuilder()
+                    ->addFileEnding('txt'),
+                true
+            )
+        ;
+        $this->assertEquals($result, (string)$builder);
+    }
+
+    public function testShellBuilderCommandSubstitions(): void
+    {
+        $result = "echo $(ls -1ARSsD | grep '.*\.php') >> $(date +%B).txt";
+        $builder = ShellBuilder::new()
+            ->createCommand('echo')
+            ->addArgument(
+                ShellBuilder::new()
+                    ->createCommandSubstition()
+                    ->createCommand('ls')
+                    ->addShortOption('1ARSsD')
+                    ->addToBuilder()
+                    ->pipe(
+                        ShellBuilder::command('grep')
+                            ->addArgument('.*\.php')
+                    ),
+                false
+            )
+            ->addToBuilder()
+            ->redirectOutput(
+                ShellBuilder::new()
+                    ->createCommand('date')
+                    ->addArgument('+%B', false)
+                    ->toggleCommandSubstitution()
+                    ->addToBuilder()
+                    ->addFileEnding('txt'),
+                true
+            )
+        ;
+        $this->assertEquals($result, (string)$builder);
+    }
+
+    public function testCoprocessWithShellGroupAndRedirections(): void
+    {
+        // example taken from here: https://wiki-dev.bash-hackers.org/syntax/keywords/coproc
+        $builder = new ShellBuilder(GroupType::SAMESHELL_GROUP);
+        $builder->runAsynchronously(true)
+            ->createCommand('tee')
+            ->addArgument(
+                $builder->createGroup(true)
+                    ->createCommand('tee')
+                    ->addArgument('logfile', false)
+                    ->addToBuilder(),
+                false
+            )
+            ->addToBuilder()
+            ->redirectDescriptor('', true, null, 3);
+        $this->assertEquals(
+            '{coproc tee {tee logfile;} >&3 ;} 3>&1',
+            (string)ShellBuilder::new()->add($builder)->redirectDescriptor('', true, 3, 1)
+        );
+    }
+
+    public function testNamedCoprocessWithShellGroupAndRedirections(): void
+    {
+        // example taken from here: https://wiki-dev.bash-hackers.org/syntax/keywords/coproc
+        $builder = new ShellBuilder(GroupType::SAMESHELL_GROUP);
+        $builder->runAsynchronously(true, 'mycoproc')
+            ->add(ShellBuilder::new()
+                ->createGroup(true)
+                ->createCommand('awk')
+                ->addArgument('{print "foo" $0;fflush()}')
+                ->addToBuilder())
+            ->redirectDescriptor('', true, null, 3);
+        $this->assertEquals(
+            '{coproc mycoproc {awk \'{print "foo" $0;fflush()}\';} >&3 ;} 3>&1',
+            (string)ShellBuilder::new()->add($builder)->redirectDescriptor('', true, 3, 1)
+        );
+    }
+
+    public function testSimpleAsyncShellBuilder(): void
+    {
+        $this->assertEquals(
+            './import-script & ./import-script2 &',
+            ShellBuilder::new()->add('./import-script')->async('./import-script2')->async()
+        );
     }
 }

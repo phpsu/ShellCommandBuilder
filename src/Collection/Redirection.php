@@ -59,15 +59,31 @@ final class Redirection extends AbstractCollection
      */
     public static function redirectBetweenFiles($value, bool $toLeft): self
     {
+        return self::redirectBetweenDescriptors($value, $toLeft);
+    }
+
+    /**
+     * @param string|ShellInterface $value
+     * @param bool $toLeft
+     * @param int|null $firstDescriptor
+     * @param int|null $secondDescriptor
+     * @return static
+     * @throws ShellBuilderException
+     */
+    public static function redirectBetweenDescriptors($value, bool $toLeft, int $firstDescriptor = null, int $secondDescriptor = null): self
+    {
         $redirect = new self();
-        $redirect->tuple = CollectionTuple::create($value, $toLeft ? RedirectOperator::REDIRECT_LEFT : RedirectOperator::REDIRECT_RIGHT);
+        $redirect->tuple = CollectionTuple::create($value, sprintf(
+            '%s%s%s',
+            $firstDescriptor ?: '',
+            $toLeft ? RedirectOperator::REDIRECT_LEFT : RedirectOperator::REDIRECT_RIGHT,
+            $secondDescriptor ?: ''
+        ));
         return $redirect;
     }
 
     public static function redirectErrorToOutput(): self
     {
-        $redirect = new self();
-        $redirect->tuple = CollectionTuple::create('', RedirectOperator::ERR_TO_OUT_REDIRECT);
-        return $redirect;
+        return self::redirectBetweenDescriptors('', true, 2, 1);
     }
 }
