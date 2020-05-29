@@ -20,8 +20,15 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     private $commandList = [];
     /** @var int */
     private $groupType;
+    /**
+     * name of the coprocess - empty string means anonymous
+     * @var null|string
+     */
+    private $asynchronously;
     /** @var bool */
-    private $asynchronously = false;
+    private $processSubstitution = false;
+    /** @var bool */
+    private $commandSubstitution = false;
 
     /**
      * This is a shortcut for quicker fluid access to the shell builder
@@ -52,9 +59,9 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         return new ShellCommand($name, $withNewBuilder ? new self() : $this);
     }
 
-    public function runAsynchronously(bool $isAsync = true): self
+    public function runAsynchronously(bool $isAsync = true, string $name = ''): self
     {
-        $this->asynchronously = $isAsync;
+        $this->asynchronously = $isAsync ? $name : null;
         return $this;
     }
 
@@ -101,7 +108,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
      * @return $this
      * @throws ShellBuilderException
      */
-    public function async($command): self
+    public function async($command = ''): self
     {
         $this->commandList[] = ShellList::async($this->parseCommand($command));
         return $this;
@@ -179,6 +186,21 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         return $this;
     }
 
+    /**
+     * @param ShellInterface|string $command
+     * @param bool $toLeft
+     * @param null|int $firstDescriptor
+     * @param null|int $secondDescriptor
+     * @return static
+     * @throws ShellBuilderException
+     */
+    public function redirectDescriptor($command, bool $toLeft, int $firstDescriptor = null, int $secondDescriptor = null): self
+    {
+        $command = $this->parseCommand($command);
+        $this->commandList[] = Redirection::redirectBetweenDescriptors($command, $toLeft, $firstDescriptor, $secondDescriptor);
+        return $this;
+    }
+
     public function redirectErrorToOutput(): self
     {
         $this->commandList[] = Redirection::redirectErrorToOutput();
@@ -191,9 +213,38 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         return $this;
     }
 
+    /**
+     * @param string|ShellInterface $fileEnding
+     * @return ShellBuilder
+     * @throws ShellBuilderException
+     */
+    public function addFileEnding($fileEnding): self
+    {
+        $tuple = CollectionTuple::create($fileEnding, '.');
+        $tuple
+            ->noSpaceAfterJoin(true)
+            ->noSpaceBeforeJoin(true);
+        $this->commandList[] = $tuple;
+        return $this;
+    }
+
     public function createGroup(bool $inSameShell = false): self
     {
         return new self($inSameShell ? GroupType::SAMESHELL_GROUP : GroupType::SUBSHELL_GROUP);
+    }
+
+    public function createProcessSubstition(): self
+    {
+        $builder = new self(GroupType::SUBSHELL_GROUP);
+        $builder->processSubstitution = true;
+        return $builder;
+    }
+
+    public function createCommandSubstition(): self
+    {
+        $builder = new self(GroupType::SUBSHELL_GROUP);
+        $builder->commandSubstitution = true;
+        return $builder;
     }
 
     /**
@@ -243,8 +294,8 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     public function __toString(): string
     {
         $result = '';
-        if ($this->asynchronously) {
-            $result = 'coproc ';
+        if ($this->asynchronously !== null) {
+            $result = sprintf('coproc %s%s', $this->asynchronously, $this->asynchronously !== '' ? ' ' : '');
         }
         foreach ($this->commandList as $command) {
             $result .= $command;
@@ -258,13 +309,21 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
             );
         }
         if ($this->groupType === GroupType::SUBSHELL_GROUP) {
+            $substitionType = '';
+            if ($this->commandSubstitution) {
+                $substitionType = '$';
+            }
+            if ($this->processSubstitution) {
+                $substitionType = '<';
+            }
             return sprintf(
-                '%s%s%s',
+                '%s%s%s%s',
+                $substitionType,
                 ControlOperator::BLOCK_DEFINITON_OPEN,
                 $result,
                 ControlOperator::BLOCK_DEFINITON_CLOSE
             );
         }
-        return $result;
+        return rtrim($result);
     }
 }

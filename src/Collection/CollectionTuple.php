@@ -18,6 +18,10 @@ final class CollectionTuple implements ShellInterface
 
     /** @var string|ShellInterface */
     protected $value = '';
+    /** @var bool */
+    private $noSpaceBeforeJoin = false;
+    /** @var bool */
+    private $noSpaceAfterJoin = false;
 
     /**
      * @param string|ShellInterface|mixed $value
@@ -36,6 +40,18 @@ final class CollectionTuple implements ShellInterface
         return $tuple;
     }
 
+    public function noSpaceBeforeJoin(bool $space): self
+    {
+        $this->noSpaceBeforeJoin = $space;
+        return $this;
+    }
+
+    public function noSpaceAfterJoin(bool $space): self
+    {
+        $this->noSpaceAfterJoin = $space;
+        return $this;
+    }
+
     /**
      * @return array<string|ShellInterface|array<mixed>>
      */
@@ -48,6 +64,6 @@ final class CollectionTuple implements ShellInterface
     public function __toString(): string
     {
         /** @psalm-suppress ImplicitToStringCast **/
-        return sprintf(' %s%s%s', $this->join, $this->value === '' ? '' : ' ', $this->value);
+        return sprintf('%s%s%s%s', $this->noSpaceBeforeJoin ? '' : ' ', $this->join, ($this->value === '' || $this->noSpaceAfterJoin) ? '' : ' ', $this->value);
     }
 }
