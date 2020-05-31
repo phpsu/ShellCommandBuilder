@@ -12,11 +12,12 @@ use PHPSu\ShellCommandBuilder\Conditional\BasicExpression;
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
+use PHPSu\ShellCommandBuilder\Literal\ShellVariable;
 use TypeError;
 
 final class ShellBuilder implements ShellInterface, \JsonSerializable
 {
-    /** @var array<ShellInterface|CollectionTuple>  */
+    /** @var array<ShellInterface>  */
     private $commandList = [];
     /** @var int */
     private $groupType;
@@ -29,6 +30,8 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     private $processSubstitution = false;
     /** @var bool */
     private $commandSubstitution = false;
+    /** @var array<string, ShellVariable> */
+    private $variables = [];
 
     /**
      * This is a shortcut for quicker fluid access to the shell builder
@@ -62,6 +65,34 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     public function runAsynchronously(bool $isAsync = true, string $name = ''): self
     {
         $this->asynchronously = $isAsync ? $name : null;
+        return $this;
+    }
+
+    /**
+     * @param string $variable
+     * @param string|ShellInterface $value
+     * @param bool $useBackticks
+     * @param bool $escape is the value instance of ShellInterface, then this variable is automatically false
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function addVariable(string $variable, $value, bool $useBackticks = false, bool $escape = true): self
+    {
+        if (isset($this->variables[$variable])) {
+            throw new ShellBuilderException('Variable has already been declared.');
+        }
+        $shellVariable = new ShellVariable($variable, $value);
+        $shellVariable->wrapWithBackticks($useBackticks);
+        if (is_string($value)) {
+            $shellVariable->setEscape($escape);
+        }
+        $this->variables[$variable] = $shellVariable;
+        return $this;
+    }
+
+    public function removeVariable(string $variable): self
+    {
+        unset($this->variables[$variable]);
         return $this;
     }
 
@@ -274,6 +305,18 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         }
     }
 
+    private function variablesToString(): string
+    {
+        $variableString = '';
+        foreach ($this->variables as $variable) {
+            $variableString .= $variable . ';';
+        }
+        if ($variableString !== '') {
+            $variableString .= ' ';
+        }
+        return $variableString;
+    }
+
     public function jsonSerialize(): array
     {
         return $this->__toArray();
@@ -286,7 +329,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     {
         $commands = [];
         foreach ($this->commandList as $item) {
-            $commands[] = $item instanceof ShellInterface ? $item->__toArray() : $item;
+            $commands[] = $item->__toArray();
         }
         return $commands;
     }
@@ -324,6 +367,6 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
                 ControlOperator::BLOCK_DEFINITON_CLOSE
             );
         }
-        return rtrim($result);
+        return rtrim(sprintf('%s%s', $this->variablesToString(), $result));
     }
 }

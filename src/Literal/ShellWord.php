@@ -20,14 +20,31 @@ class ShellWord implements ShellInterface
     protected const SHORT_OPTION_CONTROL = '-';
     protected const EQUAL_CONTROL = '=';
 
-    /** @var bool */
+    /**
+     * @var bool
+     * @psalm-readonly
+     */
     protected $isShortOption = false;
-    /** @var bool */
+    /**
+     * @var bool
+     * @psalm-readonly
+     */
     protected $isOption = false;
-    /** @var bool */
+    /**
+     * @var bool
+     * @psalm-readonly
+     */
     protected $isArgument = false;
-    /** @var bool */
+    /**
+     * @var bool
+     * @psalm-readonly
+     */
     protected $isEnvironmentVariable = false;
+    /**
+     * @var bool
+     * @psalm-readonly
+     */
+    protected $isVariable = false;
     /** @var bool */
     protected $isEscaped = true;
     /** @var bool */
@@ -36,6 +53,10 @@ class ShellWord implements ShellInterface
     protected $useAssignOperator = false;
     /** @var bool */
     protected $nameUpperCase = false;
+    /** @var bool */
+    protected $wrapAsSubcommand = false;
+    /** @var bool */
+    protected $wrapWithBacktricks = false;
     /** @var string */
     protected $prefix = '';
     /** @var string */
@@ -56,7 +77,9 @@ class ShellWord implements ShellInterface
     protected function __construct(string $argument, $value = '')
     {
         if (!empty($argument) && !$this->validShellWord($argument)) {
-            throw new ShellBuilderException('A Shell Argument has to be a valid Shell word and cannot contain e.g whitespace');
+            throw new ShellBuilderException(
+                'A Shell Argument has to be a valid Shell word and cannot contain e.g whitespace'
+            );
         }
         $this->argument = $argument;
         $this->value = $value;
@@ -149,6 +172,7 @@ class ShellWord implements ShellInterface
             'isShortOption' => $this->isShortOption,
             'isOption' => $this->isOption,
             'isEnvironmentVariable' => $this->isEnvironmentVariable,
+            'isVariable' => $this->isVariable,
             'escaped' => $this->isEscaped,
             'withAssign' => $this->useAssignOperator,
             'spaceAfterValue' => $this->spaceAfterValue,
@@ -162,6 +186,9 @@ class ShellWord implements ShellInterface
         $this->prepare();
         /** @var string $value */
         $value = $this->getValue();
+        if ($this->value instanceof ShellInterface && $this->wrapAsSubcommand) {
+            $value = $this->wrapWithBacktricks ? "`$value`" : "$($value)";
+        }
         return sprintf(
             '%s%s%s%s%s',
             $this->prefix,
