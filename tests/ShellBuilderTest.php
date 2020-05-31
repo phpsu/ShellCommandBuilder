@@ -10,6 +10,7 @@ use PHPSu\ShellCommandBuilder\Conditional\StringExpression;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellBuilder;
+use PHPSu\ShellCommandBuilder\ShellCommand;
 use PHPUnit\Framework\TestCase;
 
 final class ShellBuilderTest extends TestCase
@@ -696,5 +697,78 @@ final class ShellBuilderTest extends TestCase
             './import-script & ./import-script2 &',
             ShellBuilder::new()->add('./import-script')->async('./import-script2')->async()
         );
+    }
+
+    public function testAddVariableToShellBuilder(): void
+    {
+        $this->assertEquals(
+            "a='6';",
+            (string)ShellBuilder::new()->addVariable('a', '6')
+        );
+
+        $this->assertEquals(
+            "a='6';b=7;",
+            (string)ShellBuilder::new()->addVariable('a', '6')->addVariable('b', '7', false, false)
+        );
+
+        $this->assertEquals(
+            "a='6';b=$(cat);",
+            (string)ShellBuilder::new()->addVariable('a', '6')->addVariable('b', ShellBuilder::command('cat'))
+        );
+
+        $this->assertEquals(
+            "a='6';b=`cat`;",
+            (string)ShellBuilder::new()->addVariable('a', '6')->addVariable('b', ShellBuilder::command('cat'), true)
+        );
+    }
+
+    public function testAddDuplicateVariableException(): void
+    {
+        $this->expectException(ShellBuilderException::class);
+        $this->expectExceptionMessage('Variable has already been declared.');
+        ShellBuilder::new()
+            ->addVariable('a', 'b')
+            ->addVariable('a', 'c')
+        ;
+    }
+
+    public function testAddAndRemoveVariablesFromList(): void
+    {
+        $builder = ShellBuilder::new()
+            ->addVariable('a', 'b')
+            ->addVariable('b', 'c')
+            ->addVariable('c', 'd')
+            ->addVariable('d', 'e')
+            ->removeVariable('b')
+        ;
+        $this->assertEquals("a='b';c='d';d='e';", (string)$builder);
+    }
+
+    public function testVariablesWithConditionalAndCommand(): void
+    {
+        $builder = ShellBuilder::new()
+            ->addVariable('a', '6', false, false)
+            ->add(ArithmeticExpression::create()->greater('$a', '5')->escapeValue(true))
+            ->and(ShellBuilder::command('echo')->addArgument('hello'))
+        ;
+        $this->assertEquals('a=6; [[ "$a" -gt "5" ]] && echo \'hello\'', $builder->__toString());
+    }
+
+    public function testCommandVariableWithConditionalAndCommand(): void
+    {
+        $builder = ShellBuilder::new()
+            ->addVariable(
+                'a',
+                ShellBuilder::new()
+                ->createCommand('cat')
+                ->addNoSpaceArgument('file')
+                ->addToBuilder()
+                ->addFileEnding('txt'),
+                true
+            )
+            ->add(ArithmeticExpression::create()->greater('$a', '5')->escapeValue(true))
+            ->and(ShellBuilder::command('echo')->addArgument('hello'))
+        ;
+        $this->assertEquals('a=`cat file.txt`; [[ "$a" -gt "5" ]] && echo \'hello\'', $builder->__toString());
     }
 }

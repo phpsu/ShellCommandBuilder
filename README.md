@@ -375,9 +375,10 @@ Let's look at two examples:
 
 # 2: 
 a=6; [[ "$a" -gt "5" ]] && echo "hello";
-```
 
-> Note: the "a=6;" part is currently not available
+# 3: 
+a=`cat file.txt`; [[ "$a" -gt "5" ]] && echo "hello";
+```
 
 ```php
 
@@ -393,7 +394,27 @@ ShellBuilder::new()
 
 # 2:
 ShellBuilder::new()
+    // adding a variable "a" with the value "6"
+    // the third argument replaces $() through backticks --> a=$(cat) ~> a=`cat`
+    // the fourth argument sets escpaing to false.
+    // Escaping is disabled for commands as value.
+    ->addVariable('a', '6', false, false)
     ->add(ArithmeticExpression::create()->greater('$a', '5'))
+    ->and(ShellBuilder::command('echo')->addArgument('hello'))
+;
+
+# 3:
+
+ShellBuilder::new()
+    ->addVariable('a',
+        ShellBuilder::new()
+        ->createCommand('cat')
+        ->addNoSpaceArgument('file')
+        ->addToBuilder()
+        ->addFileEnding('txt'),
+        true // enable backticks
+    )
+    ->add(ArithmeticExpression::create()->greater('$a', '5')->escapeValue(true))
     ->and(ShellBuilder::command('echo')->addArgument('hello'))
 ;
 

@@ -8,6 +8,8 @@ use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\Literal\ShellArgument;
 use PHPSu\ShellCommandBuilder\Literal\ShellOption;
 use PHPSu\ShellCommandBuilder\Literal\ShellShortOption;
+use PHPSu\ShellCommandBuilder\Literal\ShellVariable;
+use PHPSu\ShellCommandBuilder\ShellBuilder;
 use PHPSu\ShellCommandBuilder\ShellCommand;
 use PHPUnit\Framework\TestCase;
 
@@ -41,6 +43,7 @@ final class ShellWordTest extends TestCase
                 'isShortOption' => false,
                 'isOption' => true,
                 'isEnvironmentVariable' => false,
+                'isVariable' => false,
                 'escaped' => true,
                 'withAssign' => false,
                 'spaceAfterValue' => true,
@@ -49,6 +52,63 @@ final class ShellWordTest extends TestCase
             ],
             $array
         );
+    }
+
+    public function testShellVariableToDebugArray(): void
+    {
+        $word = new ShellVariable('hello', 'world');
+        $array = $word->__toArray();
+        $this->assertEquals(
+            [
+                'isArgument' => false,
+                'isShortOption' => false,
+                'isOption' => false,
+                'isEnvironmentVariable' => false,
+                'isVariable' => true,
+                'escaped' => true,
+                'withAssign' => true,
+                'spaceAfterValue' => false,
+                'value' => "'world'",
+                'argument' => 'hello',
+            ],
+            $array
+        );
+
+        $word = new ShellVariable('hello', ShellBuilder::command('echo'));
+        $array = $word->__toArray();
+        $this->assertEquals(
+            [
+                'isArgument' => false,
+                'isShortOption' => false,
+                'isOption' => false,
+                'isEnvironmentVariable' => false,
+                'isVariable' => true,
+                'escaped' => false,
+                'withAssign' => true,
+                'spaceAfterValue' => false,
+                'value' => [
+                    'executable' => 'echo',
+                    'arguments' => [],
+                    'isCommandSubstitution' => false,
+                    'environmentVariables' => [],
+                ],
+                'argument' => 'hello',
+            ],
+            $array
+        );
+    }
+
+    public function testShellVariableToString(): void
+    {
+        $word = new ShellVariable('hello', 'world');
+        $this->assertEquals('hello=\'world\'', $word->__toString());
+
+        $word = new ShellVariable('hello', ShellBuilder::command('echo'));
+        $this->assertEquals('hello=$(echo)', $word->__toString());
+
+        $word = new ShellVariable('hello', ShellBuilder::command('echo'));
+        $word->wrapWithBackticks(true);
+        $this->assertEquals('hello=`echo`', $word->__toString());
     }
 
     public function testShellWordShortOptionAsShellInterfaceToDebugArray(): void
@@ -61,6 +121,7 @@ final class ShellWordTest extends TestCase
                 'isShortOption' => true,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
+                'isVariable' => false,
                 'escaped' => true,
                 'withAssign' => false,
                 'spaceAfterValue' => true,
@@ -87,6 +148,7 @@ final class ShellWordTest extends TestCase
                 'isShortOption' => false,
                 'isOption' => false,
                 'isEnvironmentVariable' => false,
+                'isVariable' => false,
                 'escaped' => true,
                 'withAssign' => false,
                 'spaceAfterValue' => false,
@@ -113,6 +175,7 @@ final class ShellWordTest extends TestCase
                 'isShortOption' => false,
                 'isOption' => true,
                 'isEnvironmentVariable' => false,
+                'isVariable' => false,
                 'escaped' => false,
                 'withAssign' => false,
                 'spaceAfterValue' => true,

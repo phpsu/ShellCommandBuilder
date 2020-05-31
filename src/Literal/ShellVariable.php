@@ -7,18 +7,15 @@ namespace PHPSu\ShellCommandBuilder\Literal;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
-/**
- * @internal
- * @psalm-internal PHPSu\ShellCommandBuilder
- */
-final class ShellEnvironmentVariable extends ShellWord
+final class ShellVariable extends ShellWord
 {
-    protected $isEnvironmentVariable = true;
+    protected $isVariable = true;
     protected $useAssignOperator = true;
-    protected $nameUpperCase = true;
+    protected $wrapAsSubcommand = true;
+    protected $spaceAfterValue = false;
 
     /**
-     * ShellArgument constructor.
+     * ShellVariable constructor.
      * @param string $option
      * @param ShellInterface|string $value
      * @throws ShellBuilderException
@@ -26,5 +23,14 @@ final class ShellEnvironmentVariable extends ShellWord
     public function __construct(string $option, $value)
     {
         parent::__construct($option, $value);
+        if ($this->value instanceof ShellInterface) {
+            $this->setEscape(false);
+        }
+    }
+
+    public function wrapWithBackticks(bool $enable): self
+    {
+        $this->wrapWithBacktricks = $enable;
+        return $this;
     }
 }
