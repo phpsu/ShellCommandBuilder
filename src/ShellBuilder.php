@@ -73,16 +73,18 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
      * @param string|ShellInterface $value
      * @param bool $useBackticks
      * @param bool $escape is the value instance of ShellInterface, then this variable is automatically false
+     * @param bool $noSemicolon
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addVariable(string $variable, $value, bool $useBackticks = false, bool $escape = true): self
+    public function addVariable(string $variable, $value, bool $useBackticks = false, bool $escape = true, bool $noSemicolon = false): self
     {
         if (isset($this->variables[$variable])) {
             throw new ShellBuilderException('Variable has already been declared.');
         }
         $shellVariable = new ShellVariable($variable, $value);
         $shellVariable->wrapWithBackticks($useBackticks);
+        $shellVariable->setNoSemicolon($noSemicolon);
         if (is_string($value)) {
             $shellVariable->setEscape($escape);
         }
@@ -278,6 +280,11 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         return $builder;
     }
 
+    public function hasCommands(): bool
+    {
+        return empty($this->commandList) && empty($this->variables);
+    }
+
     /**
      * @param string|ShellInterface $command
      * @param bool $allowEmpty
@@ -309,7 +316,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     {
         $variableString = '';
         foreach ($this->variables as $variable) {
-            $variableString .= $variable . ';';
+            $variableString .= $variable;
         }
         if ($variableString !== '') {
             $variableString .= ' ';

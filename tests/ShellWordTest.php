@@ -101,14 +101,15 @@ final class ShellWordTest extends TestCase
     public function testShellVariableToString(): void
     {
         $word = new ShellVariable('hello', 'world');
+        $word->setNoSemicolon(true);
         $this->assertEquals('hello=\'world\'', $word->__toString());
 
         $word = new ShellVariable('hello', ShellBuilder::command('echo'));
-        $this->assertEquals('hello=$(echo)', $word->__toString());
+        $this->assertEquals('hello=$(echo);', $word->__toString());
 
         $word = new ShellVariable('hello', ShellBuilder::command('echo'));
         $word->wrapWithBackticks(true);
-        $this->assertEquals('hello=`echo`', $word->__toString());
+        $this->assertEquals('hello=`echo`;', $word->__toString());
     }
 
     public function testShellWordShortOptionAsShellInterfaceToDebugArray(): void
