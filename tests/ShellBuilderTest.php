@@ -771,4 +771,28 @@ final class ShellBuilderTest extends TestCase
         ;
         $this->assertEquals('a=`cat file.txt`; [[ "$a" -gt "5" ]] && echo \'hello\'', $builder->__toString());
     }
+
+    public function testShellBuilderIsEmpty(): void
+    {
+        $builder = ShellBuilder::new();
+        $this->assertTrue($builder->hasCommands());
+    }
+
+    public function testShellBuilderIsNotEmpty(): void
+    {
+        $builder = ShellBuilder::new();
+        $builder->addVariable('a', 'b');
+        $this->assertFalse($builder->hasCommands());
+        $builder->removeVariable('a');
+        $this->assertTrue($builder->hasCommands());
+        $builder->add('echo');
+        $this->assertFalse($builder->hasCommands());
+    }
+
+    public function testAddVariableWithoutSemicolon(): void
+    {
+        $builder = ShellBuilder::new();
+        $builder->addVariable('a', 'b', false, false, true);
+        $this->assertEquals('a=b', (string)$builder);
+    }
 }
