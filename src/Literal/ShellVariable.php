@@ -13,6 +13,8 @@ final class ShellVariable extends ShellWord
     protected $useAssignOperator = true;
     protected $wrapAsSubcommand = true;
     protected $spaceAfterValue = false;
+    /** @var bool */
+    private $noSemicolon = false;
 
     /**
      * ShellVariable constructor.
@@ -32,5 +34,16 @@ final class ShellVariable extends ShellWord
     {
         $this->wrapWithBacktricks = $enable;
         return $this;
+    }
+
+    public function setNoSemicolon(bool $noSemicolon): self
+    {
+        $this->noSemicolon = $noSemicolon;
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('%s%s', parent::__toString(), $this->noSemicolon ? '' : ';');
     }
 }
