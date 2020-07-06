@@ -11,7 +11,7 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 /**
  * Representing the basic element of a Shell Command, a single literal aka "word"
  * @internal
- * @psalm-internal PHPSu\ShellCommandBuilder\Literal
+ * @psalm-internal PHPSu\ShellCommandBuilder
  * @package PHPSu\ShellCommandBuilder\Literal
  */
 class ShellWord implements ShellInterface
