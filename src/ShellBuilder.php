@@ -17,7 +17,7 @@ use TypeError;
 
 final class ShellBuilder implements ShellInterface, \JsonSerializable
 {
-    /** @var array<ShellInterface>  */
+    /** @var array<ShellInterface|string>  */
     private $commandList = [];
     /** @var int */
     private $groupType;
@@ -112,7 +112,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param $command
+     * @param string|ShellInterface $command
      * @param bool $raw
      * @return $this
      * @throws ShellBuilderException
@@ -350,7 +350,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     {
         $commands = [];
         foreach ($this->commandList as $item) {
-            $commands[] = $item->__toArray();
+            $commands[] = is_string($item) ? $item : $item->__toArray();
         }
         return $commands;
     }
