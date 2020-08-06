@@ -7,11 +7,18 @@ services:
     - ./:/app
     - ~/.ssh:/home/application/.ssh
     - ~/.gitconfig:/home/application/.gitconfig
-    - ~/.composer/cache:/home/application/.composer/cache
     environment:
       - XDEBUG_REMOTE_HOST=${XDEBUG_REMOTE_HOST:-}
       - XDEBUG_REMOTE_PORT=${XDEBUG_REMOTE_PORT:-9000}
       - php.xdebug.idekey=${XDEBUG_IDEKEY:-PHPSTORM}
       - php.xdebug.remote_log=${XDEBUG_REMOTE_LOG:-/tmp/xdebug.log}
       - PHP_DEBUGGER=${PHP_DEBUGGER:-none}
+    working_dir: /app
+
+  php8:
+    image: chrisb9/php8-nginx-xdebug
+    volumes:
+      - ./:/app
+      - ~/.ssh:/home/application/.ssh
+      - ~/.gitconfig:/home/application/.gitconfig
     working_dir: /app
