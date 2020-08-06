@@ -14,7 +14,7 @@ cache:
     - $HOME/.composer/cache
 
 script:
-  - composer install
+  - composer install --ignore-platform-reqs
   - vendor/bin/grumphp run
   - composer test
   - composer infection
