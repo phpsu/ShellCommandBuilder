@@ -19,7 +19,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
 {
     use ShellConditional;
 
-    /** @var array<ShellInterface>  */
+    /** @var array<ShellInterface|string>  */
     private $commandList = [];
     /** @var int */
     private $groupType;
@@ -101,13 +101,27 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param string|ShellInterface $command
+     * @param string|ShellInterface ...$commands
      * @return $this
      * @throws ShellBuilderException
      */
-    public function add($command): self
+    public function add(...$commands): self
     {
-        $command = $this->parseCommand($command, true);
+        foreach ($commands as $command) {
+            $this->addSingle($command);
+        }
+        return $this;
+    }
+
+    /**
+     * @param string|ShellInterface $command
+     * @param bool $raw
+     * @return $this
+     * @throws ShellBuilderException
+     */
+    public function addSingle($command, bool $raw = false): self
+    {
+        $command = $raw ? $command : $this->parseCommand($command, true);
         if (empty($this->commandList)) {
             $this->commandList[] = $command;
             return $this;
@@ -338,7 +352,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     {
         $commands = [];
         foreach ($this->commandList as $item) {
-            $commands[] = $item->__toArray();
+            $commands[] = is_string($item) ? $item : $item->__toArray();
         }
         return $commands;
     }
