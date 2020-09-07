@@ -17,6 +17,8 @@ use TypeError;
 
 final class ShellBuilder implements ShellInterface, \JsonSerializable
 {
+    use ShellConditional;
+
     /** @var array<ShellInterface>  */
     private $commandList = [];
     /** @var int */
@@ -282,7 +284,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
 
     public function hasCommands(): bool
     {
-        return empty($this->commandList) && empty($this->variables);
+        return empty($this->commandList) === false || empty($this->variables) === false;
     }
 
     /**
@@ -352,7 +354,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         }
         if ($this->groupType === GroupType::SAMESHELL_GROUP) {
             return sprintf(
-                '%s%s;%s',
+                '%s %s;%s',
                 ControlOperator::CURLY_BLOCK_DEFINITON_OPEN,
                 $result,
                 ControlOperator::CURLY_BLOCK_DEFINITON_CLOSE

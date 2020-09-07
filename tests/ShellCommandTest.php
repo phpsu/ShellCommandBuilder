@@ -6,6 +6,7 @@ namespace PHPSu\ShellCommandBuilder\Tests;
 
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
+use PHPSu\ShellCommandBuilder\ShellBuilder;
 use PHPSu\ShellCommandBuilder\ShellCommand;
 use PHPUnit\Framework\TestCase;
 
@@ -169,6 +170,18 @@ class ShellCommandTest extends TestCase
                 'argument' =>  "color",
             ]
         ], $command['arguments']);
+    }
+
+    public function testConditionalArguments()
+    {
+        $command = ShellBuilder::command('test')
+            ->if(1 + 1 === 3, static function (ShellCommand $command) {
+                return $command->addOption('f', '1 + 1 = 3');
+            })
+            ->if(1 + 1 === 2, static function (ShellCommand $command) {
+                return $command->addOption('t', '1 + 1 = 2');
+            });
+        static::assertEquals((string)$command, 'test --t \'1 + 1 = 2\'');
     }
 
     public function testUnEscapedOption(): void

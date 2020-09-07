@@ -17,7 +17,7 @@ final class ShellBuilderTest extends TestCase
 {
     public function testBuilderConcept(): void
     {
-        $result = 'a && b | c || d |& f && (g && h) || {i || j;}';
+        $result = 'a && b | c || d |& f && (g && h) || { i || j;}';
         $builder = new ShellBuilder();
         $a = $builder->createCommand('a');
         $b = $builder->createCommand('b');
@@ -46,7 +46,7 @@ final class ShellBuilderTest extends TestCase
 
     public function testBuilderConceptWithShortcut(): void
     {
-        $result = 'a && b | c || d |& f && (g && h) || {i || j;}';
+        $result = 'a && b | c || d |& f && (g && h) || { i || j;}';
         $builder = new ShellBuilder();
         $builder
             ->add('a')
@@ -146,7 +146,7 @@ final class ShellBuilderTest extends TestCase
             ->add(
                 $builder->createCommand('echo')->addArgument('hello')
             )->and('cat'));
-        $this->assertEquals("{echo 'hello' && cat;}", (string)$builder);
+        $this->assertEquals("{ echo 'hello' && cat;}", (string)$builder);
     }
 
     public function testSimpleSshCommand(): void
@@ -669,7 +669,7 @@ final class ShellBuilderTest extends TestCase
             ->addToBuilder()
             ->redirectDescriptor('', true, null, 3);
         $this->assertEquals(
-            '{coproc tee {tee logfile;} >&3 ;} 3>&1',
+            '{ coproc tee { tee logfile;} >&3 ;} 3>&1',
             (string)ShellBuilder::new()->add($builder)->redirectDescriptor('', true, 3, 1)
         );
     }
@@ -686,9 +686,58 @@ final class ShellBuilderTest extends TestCase
                 ->addToBuilder())
             ->redirectDescriptor('', true, null, 3);
         $this->assertEquals(
-            '{coproc mycoproc {awk \'{print "foo" $0;fflush()}\';} >&3 ;} 3>&1',
+            '{ coproc mycoproc { awk \'{print "foo" $0;fflush()}\';} >&3 ;} 3>&1',
             (string)ShellBuilder::new()->add($builder)->redirectDescriptor('', true, 3, 1)
         );
+    }
+
+    public function testCondiditionalArguments(): void
+    {
+        // if false
+        $builder = ShellBuilder::new()
+            ->if(false, static function (ShellBuilder $builder) {
+                return $builder->add('echo');
+            })
+            ->ifThis(static function (ShellBuilder $builder) {
+                return $builder->hasCommands() === false;
+            }, static function (ShellBuilder $builder) {
+                return $builder->add('print');
+            });
+        static::assertEquals('print', (string)$builder);
+
+        // if true
+        $builder = ShellBuilder::new()
+            ->if(true, static function (ShellBuilder $builder) {
+                return $builder->add('echo');
+            })
+            ->ifThis(static function (ShellBuilder $builder) {
+                return $builder->hasCommands() === false;
+            }, static function (ShellBuilder $builder) {
+                return $builder->add('print');
+            });
+        static::assertEquals('echo', (string)$builder);
+    }
+
+    public function testComplexCondiditionalArguments(): void
+    {
+        $builder = ShellBuilder::new()
+            ->if(
+                false,
+                static function (ShellBuilder $builder) {
+                    return $builder->add('echo');
+                },
+                static function (ShellBuilder $builder) {
+                    return $builder->add('awk');
+                }
+            )
+            ->ifThis(static function (ShellBuilder $builder) {
+                return $builder->hasCommands() === false;
+            }, static function (ShellBuilder $builder) {
+                return $builder->add('print');
+            }, static function (ShellBuilder $builder) {
+                return $builder->and('print');
+            });
+        static::assertEquals('awk && print', (string)$builder);
     }
 
     public function testSimpleAsyncShellBuilder(): void
@@ -775,18 +824,18 @@ final class ShellBuilderTest extends TestCase
     public function testShellBuilderIsEmpty(): void
     {
         $builder = ShellBuilder::new();
-        $this->assertTrue($builder->hasCommands());
+        $this->assertFalse($builder->hasCommands());
     }
 
     public function testShellBuilderIsNotEmpty(): void
     {
         $builder = ShellBuilder::new();
         $builder->addVariable('a', 'b');
-        $this->assertFalse($builder->hasCommands());
-        $builder->removeVariable('a');
         $this->assertTrue($builder->hasCommands());
-        $builder->add('echo');
+        $builder->removeVariable('a');
         $this->assertFalse($builder->hasCommands());
+        $builder->add('echo');
+        $this->assertTrue($builder->hasCommands());
     }
 
     public function testAddVariableWithoutSemicolon(): void
