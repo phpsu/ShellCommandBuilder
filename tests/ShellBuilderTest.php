@@ -740,6 +740,31 @@ final class ShellBuilderTest extends TestCase
         static::assertEquals('awk && print', (string)$builder);
     }
 
+    public function testComplexCondiditionalArgumentsWithWrongArguments(): void
+    {
+        self::expectException(\ErrorException::class);
+        ShellBuilder::new()
+            ->ifThis(static function (ShellBuilder $builder) {
+                return 'world';
+            }, static function (ShellBuilder $builder) {
+                return $builder->add('print');
+            }, static function (ShellBuilder $builder) {
+                return 'bla';
+            });
+    }
+
+    public function testCondiditionalArgumentsWithWrongArguments(): void
+    {
+        self::expectException(\ErrorException::class);
+        ShellBuilder::new()
+            ->if(
+                true,
+                static function (ShellBuilder $builder) {
+                    return 'hello world';
+                }
+            );
+    }
+
     public function testSimpleAsyncShellBuilder(): void
     {
         $this->assertEquals(

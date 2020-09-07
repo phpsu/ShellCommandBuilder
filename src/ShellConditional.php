@@ -10,13 +10,13 @@ trait ShellConditional
     {
         if ($condition) {
             $result = $callback($this);
-            assert($result instanceof self || $result === null);
-            return $result ?? $this;
+            assert($result instanceof self);
+            return $result;
         }
         if ($alternativeCallback) {
             $alternativeResult = $alternativeCallback($this);
-            assert($alternativeResult instanceof self || $alternativeResult === null);
-            return $alternativeResult ?? $this;
+            assert($alternativeResult instanceof self);
+            return $alternativeResult;
         }
         return $this;
     }
