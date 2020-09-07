@@ -18,6 +18,8 @@ use PHPSu\ShellCommandBuilder\Literal\ShellWord;
  */
 final class ShellCommand implements ShellInterface
 {
+    use ShellConditional;
+
     /**
      * @var ShellWord
      * @psalm-readonly
