@@ -63,6 +63,20 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals($result, (string)$builder);
     }
 
+    public function testBuilderAddMany(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->add('a', 'b', 'c', 'd');
+        $this->assertEquals('a ; b ; c ; d', (string)$builder);
+    }
+
+    public function testBuilderAddRawCommand(): void
+    {
+        $builder = new ShellBuilder();
+        $builder->addSingle('echo --colorize "hello world"', true);
+        $this->assertEquals('echo --colorize "hello world"', (string)$builder);
+    }
+
     public function testCommandListDelimiter(): void
     {
         $result = (string)(new ShellBuilder())->add('a')->add('b')->add('c');

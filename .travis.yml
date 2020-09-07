@@ -1,16 +1,31 @@
 language: php
 
-php:
-  - "7.2"
-  - "7.3"
-  - "7.4"
+matrix:
+  include:
+    - php: 7.2
+      dist: bionic
+      env: COMPOSER_OPTS=""
+    - php: 7.3
+      dist: bionic
+      env: COMPOSER_OPTS=""
+    - php: 7.4
+      dist: bionic
+      env: COMPOSER_OPTS=""
+    - php: nightly
+      dist: bionic
+      env: COMPOSER_OPTS="--ignore-platform-reqs"
+  allow_failures:
+    - php: nightly
+      env: COMPOSER_OPTS="--ignore-platform-reqs"
 
 cache:
   directories:
     - $HOME/.composer/cache
 
+install:
+  - travis_retry composer install $COMPOSER_OPTS
+
 script:
-  - composer install
   - vendor/bin/grumphp run
   - composer test
   - composer infection
