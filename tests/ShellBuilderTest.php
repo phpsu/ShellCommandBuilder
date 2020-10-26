@@ -756,7 +756,7 @@ final class ShellBuilderTest extends TestCase
 
     public function testComplexCondiditionalArgumentsWithWrongArguments(): void
     {
-        self::expectException(\ErrorException::class);
+        self::expectException(\AssertionError::class);
         ShellBuilder::new()
             ->ifThis(static function (ShellBuilder $builder) {
                 return 'world';
@@ -769,7 +769,7 @@ final class ShellBuilderTest extends TestCase
 
     public function testCondiditionalArgumentsWithWrongArguments(): void
     {
-        self::expectException(\ErrorException::class);
+        self::expectException(\AssertionError::class);
         ShellBuilder::new()
             ->if(
                 true,
