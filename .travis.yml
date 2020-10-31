@@ -4,13 +4,11 @@ matrix:
   include:
     - php: 7.2
       dist: bionic
-      env: COMPOSER_OPTS=""
+      env: PHPUNIT_LEGACY="true"
     - php: 7.3
       dist: bionic
-      env: COMPOSER_OPTS=""
     - php: 7.4
       dist: bionic
-      env: COMPOSER_OPTS=""
     - php: nightly
       dist: bionic
       env: COMPOSER_OPTS="--ignore-platform-reqs"
@@ -27,8 +25,18 @@ install:
 
 script:
   - vendor/bin/grumphp run
-  - composer test
-  - composer infection
+
+  - if [[ -z "$PHPUNIT_LEGACY" ]]; then composer test; else
+      vendor/bin/phpunit --testdox --color=always
+        --configuration tests/phpunit.legacy.xml
+    ; fi
+
+  - if [[ -z "$PHPUNIT_LEGACY" ]]; then composer infection; else
+      vendor/bin/infection --ansi --threads=4 --coverage=tests/test-results
+        --test-framework-options="-c tests/phpunit.legacy.xml"
+        --only-covered --min-msi=100 --min-covered-msi=100
+    ; fi
+
   - composer psalm
 
 after_success: bash <(curl -s https://codecov.io/bash)
