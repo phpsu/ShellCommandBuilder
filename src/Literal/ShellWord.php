@@ -64,9 +64,9 @@ class ShellWord implements ShellInterface
     /** @var string */
     protected $delimiter = ' ';
     /** @var string */
-    protected $argument;
+    protected $argument = '';
     /** @var string|ShellInterface */
-    protected $value;
+    protected $value = '';
 
     /**
      * The constructor is protected, you must choose one of the children
