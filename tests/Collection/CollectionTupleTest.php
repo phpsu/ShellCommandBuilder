@@ -45,6 +45,13 @@ final class CollectionTupleTest extends TestCase
         $this->assertEquals(['||', 'a'], $tuple->__toArray());
     }
 
+    public function testToArrayWithBuilder(): void
+    {
+        $builder = ShellBuilder::command('echo')->addArgument('hunter1');
+        $tuple = CollectionTuple::create($builder, ControlOperator::AND_OPERATOR);
+        $this->assertEquals(['&&', $builder->__toArray()], $tuple->__toArray());
+    }
+
     public function testWithoutCreatingTuple(): void
     {
         $tuple = new Pipeline();
