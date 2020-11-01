@@ -4,10 +4,8 @@ matrix:
   include:
     - php: 7.2
       dist: bionic
-      env: PHPUNIT_LEGACY="true"
     - php: 7.3
       dist: bionic
-      env: PHPUNIT_LEGACY="true"
     - php: 7.4
       dist: bionic
     - php: nightly
@@ -40,9 +38,9 @@ script:
   - vendor/bin/grumphp run
   - composer test
 
-  - if [[ -z "$PHPUNIT_LEGACY" ]]; then composer infection; else
-      vendor/bin/infection --ansi --threads=4 --coverage=tests/test-results
-        --test-framework-options="-c tests/phpunit.legacy.xml"
+  - if [[ ${TRAVIS_PHP_VERSION:0:1} == "7" ]]; then composer infection; else
+      vendor/bin/infection --ansi --threads=4
+        --initial-tests-php-options="-d xdebug.mode=coverage"
         --only-covered --min-msi=100 --min-covered-msi=100
     ; fi
 
