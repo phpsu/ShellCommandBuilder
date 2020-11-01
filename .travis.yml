@@ -27,7 +27,7 @@ install:
   # Where PHPUnit v8 is used, we need to replace the config.
   - if [[ ${TRAVIS_PHP_VERSION:0:1} == "7" ]]
     && [ ${TRAVIS_PHP_VERSION:2:1} -lt 4 ]; then
-      mv -v tests/phpunit.legacy.xml tests/phpunit.xml
+      cp -v tests/phpunit.legacy.xml tests/phpunit.xml
     ; fi
 
   # PHPUnit 9 supports 7.3, but Infection PHP 18 can't read
@@ -38,11 +38,7 @@ install:
 
 script:
   - vendor/bin/grumphp run
-
-  - if [[ -z "$PHPUNIT_LEGACY" ]]; then composer test; else
-      vendor/bin/phpunit --testdox --color=always
-        --configuration tests/phpunit.legacy.xml
-    ; fi
+  - composer test
 
   - if [[ -z "$PHPUNIT_LEGACY" ]]; then composer infection; else
       vendor/bin/infection --ansi --threads=4 --coverage=tests/test-results
