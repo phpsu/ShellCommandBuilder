@@ -7,6 +7,7 @@ matrix:
       env: PHPUNIT_LEGACY="true"
     - php: 7.3
       dist: bionic
+      env: PHPUNIT_LEGACY="true"
     - php: 7.4
       dist: bionic
     - php: nightly
@@ -22,6 +23,18 @@ cache:
 
 install:
   - travis_retry composer install $COMPOSER_OPTS
+
+  # Where PHPUnit v8 is used, we need to replace the config.
+  - if [[ ${TRAVIS_PHP_VERSION:0:1} == "7" ]]
+    && [ ${TRAVIS_PHP_VERSION:2:1} -lt 4 ]; then
+      mv -v tests/phpunit.legacy.xml tests/phpunit.xml
+    ; fi
+
+  # PHPUnit 9 supports 7.3, but Infection PHP 18 can't read
+  # its config so instead we downgrade to PHPUnit 8.5 here.
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then
+      travis_retry composer require -W phpunit/phpunit:^8.5
+    ; fi
 
 script:
   - vendor/bin/grumphp run
