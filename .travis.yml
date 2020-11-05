@@ -11,9 +11,6 @@ matrix:
     - php: nightly
       dist: bionic
       env: COMPOSER_OPTS="--ignore-platform-reqs"
-  allow_failures:
-    - php: nightly
-      env: COMPOSER_OPTS="--ignore-platform-reqs"
 
 cache:
   directories:
