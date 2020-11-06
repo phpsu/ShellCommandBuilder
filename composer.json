@@ -7,12 +7,12 @@
         "process-timeout": 0
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.5",
-        "vimeo/psalm": "^3.11",
-        "infection/infection": "^0.15.3",
-        "spatie/phpunit-watcher": "^1.22",
-        "phpunit/php-invoker": "^2.0",
-        "pluswerk/grumphp-config": "^3.0"
+        "phpunit/phpunit": "^8.5 || ^9.4",
+        "vimeo/psalm": "^4.1",
+        "infection/infection": "^0.15.3 || ^0.18.2 || ^0.20.1",
+        "spatie/phpunit-watcher": "^1.24 || dev-master#071fbbf",
+        "phpunit/php-invoker": "^2.0 || ^3.1",
+        "pluswerk/grumphp-config": "^4.0.1"
     },
     "license": "MIT",
     "authors": [

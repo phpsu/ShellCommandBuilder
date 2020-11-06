@@ -17,7 +17,7 @@ abstract class BasicExpression implements ShellInterface
      * This is not POSIX-compatible (only eg. Korn and Bash), beware before using it
      * @var bool
      */
-    protected $bashEnhancedBrackets;
+    protected $bashEnhancedBrackets = false;
     /** @var bool this is always double quoted */
     protected $escapedValue = false;
     /** @var bool */

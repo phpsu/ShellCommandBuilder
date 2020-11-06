@@ -4,19 +4,13 @@ matrix:
   include:
     - php: 7.2
       dist: bionic
-      env: COMPOSER_OPTS=""
     - php: 7.3
       dist: bionic
-      env: COMPOSER_OPTS=""
     - php: 7.4
       dist: bionic
-      env: COMPOSER_OPTS=""
     - php: nightly
       dist: bionic
-      env: COMPOSER_OPTS="--ignore-platform-reqs"
-  allow_failures:
-    - php: nightly
-      env: COMPOSER_OPTS="--ignore-platform-reqs"
+      env: COMPOSER_OPTS="--ignore-platform-req=php"
 
 cache:
   directories:
@@ -25,10 +19,28 @@ cache:
 install:
   - travis_retry composer install $COMPOSER_OPTS
 
+  # Where PHPUnit v8 is used, we need to replace the config.
+  - if [[ ${TRAVIS_PHP_VERSION:0:1} == "7" ]]
+    && [ ${TRAVIS_PHP_VERSION:2:1} -lt 4 ]; then
+      cp -v tests/phpunit.legacy.xml tests/phpunit.xml
+    ; fi
+
+  # PHPUnit 9 supports 7.3, but Infection PHP 18 can't read
+  # its config so instead we downgrade to PHPUnit 8.5 here.
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then
+      travis_retry composer require -W phpunit/phpunit:^8.5
+    ; fi
+
 script:
   - vendor/bin/grumphp run
   - composer test
-  - composer infection
+
+  - if [[ ${TRAVIS_PHP_VERSION:0:1} == "7" ]]; then composer infection; else
+      vendor/bin/infection --ansi --threads=4
+        --initial-tests-php-options="-d xdebug.mode=coverage"
+        --only-covered --min-msi=100 --min-covered-msi=100
+    ; fi
+
   - composer psalm
 
 after_success: bash <(curl -s https://codecov.io/bash)
