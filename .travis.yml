@@ -10,7 +10,7 @@ matrix:
       dist: bionic
     - php: nightly
       dist: bionic
-      env: COMPOSER_OPTS="--ignore-platform-reqs"
+      env: COMPOSER_OPTS="--ignore-platform-req=php"
 
 cache:
   directories:
