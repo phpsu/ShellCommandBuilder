@@ -19,6 +19,7 @@ jobs:
         with:
           path: ~/.composer/cache/files
           key: dependencies-php-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
+      - run: composer install
       - run: vendor/bin/grumphp run
       - run: git config --global --add safe.directory /__w/phpsu/ShellCommandBuilder
       - run: script -q -e -c "composer test"
