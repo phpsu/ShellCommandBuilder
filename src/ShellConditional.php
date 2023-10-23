@@ -14,9 +14,7 @@ trait ShellConditional
             return $result;
         }
         if ($alternativeCallback) {
-            $alternativeResult = $alternativeCallback($this);
-            assert($alternativeResult instanceof self);
-            return $alternativeResult;
+            return $alternativeCallback($this);
         }
         return $this;
     }

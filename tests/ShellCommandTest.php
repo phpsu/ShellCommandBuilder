@@ -14,14 +14,14 @@ class ShellCommandTest extends TestCase
 {
     public function testShellCommand(): void
     {
-        $command = new ShellCommand('mysql');
+        $command = new ShellCommand('mariadb-dump');
         $command->addShortOption('u', 'username')
             ->addShortOption('p', 'password')
             ->addShortOption('h', '127.0.0.1')
             ->addArgument('database')
             ->addOption('skip-comments')
         ;
-        $this->assertEquals("mysql -u 'username' -p 'password' -h '127.0.0.1' 'database' --skip-comments", (string)$command);
+        $this->assertEquals("mariadb-dump -u 'username' -p 'password' -h '127.0.0.1' 'database' --skip-comments", (string)$command);
     }
 
     public function testShellCommandWithEnvironmentVariables(): void

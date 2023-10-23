@@ -1,0 +1,29 @@
+on: [push, pull_request, release]
+name: Test
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: pluswerk/php-dev:nginx-${{ matrix.php }}
+      options: -t
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2']
+    name: 'PHP ${{ matrix.php }}'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Cache dependenciess
+        uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/files
+          key: dependencies-php-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
+      - run: vendor/bin/grumphp run
+      - run: git config --global --add safe.directory /__w/phpsu/ShellCommandBuilder
+      - run: script -q -e -c "composer test"
+      - run: script -q -e -c "composer infection"
+      - run: composer psalm -- --output-format=github --shepherd
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./tests/test-results/coverage.xml
