@@ -6,5 +6,4 @@ namespace PHPSu\ShellCommandBuilder\Exception;
 
 final class ShellBuilderException extends \Exception
 {
-
 }
