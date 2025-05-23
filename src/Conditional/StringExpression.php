@@ -9,18 +9,17 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 
 final class StringExpression extends BasicExpression
 {
-    protected $escapedValue = true;
+    protected bool $escapedValue = true;
 
-    public static function create(bool $useBashBrackets = true, bool $negateExpression = false): StringExpression
+    public static function create(bool $useBashBrackets = true, bool $negateExpression = false): static
     {
         return new self($useBashBrackets, $negateExpression);
     }
 
     /**
-     * @param string|ShellInterface $string
      * @return $this
      */
-    public function lenghtZero($string): self
+    public function lenghtZero(ShellInterface|string $string): self
     {
         $this->operator = ConditionalOperator::STRING_LENGHT_ZERO;
         $this->compareWith = $string;
@@ -28,10 +27,9 @@ final class StringExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $string
      * @return $this
      */
-    public function lengthNotZero($string): self
+    public function lengthNotZero(ShellInterface|string $string): self
     {
         $this->operator = ConditionalOperator::STRING_LENGHT_NOT_ZERO;
         $this->compareWith = $string;
@@ -39,11 +37,9 @@ final class StringExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $stringA
-     * @param string|ShellInterface $stringB
      * @return $this
      */
-    public function eq($stringA, $stringB): self
+    public function eq(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_EQUAL;
         $this->compareWith = $stringB;
@@ -52,11 +48,9 @@ final class StringExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $stringA
-     * @param string|ShellInterface $stringB
      * @return $this
      */
-    public function equal($stringA, $stringB): self
+    public function equal(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_EQUAL_BASH;
         $this->bashEnhancedBrackets = true;
@@ -66,11 +60,9 @@ final class StringExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $stringA
-     * @param string|ShellInterface $stringB
      * @return $this
      */
-    public function notEqual($stringA, $stringB): self
+    public function notEqual(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_NOT_EQUAL;
         $this->compareWith = $stringB;
@@ -79,11 +71,9 @@ final class StringExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $stringA
-     * @param string|ShellInterface $stringB
      * @return $this
      */
-    public function sortsBefore($stringA, $stringB): self
+    public function sortsBefore(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_SORTS_BEFORE;
         $this->compareWith = $stringB;
@@ -92,11 +82,9 @@ final class StringExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $stringA
-     * @param string|ShellInterface $stringB
      * @return $this
      */
-    public function sortsAfter($stringA, $stringB): self
+    public function sortsAfter(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_SORTS_AFTER;
         $this->compareWith = $stringB;

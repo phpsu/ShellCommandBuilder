@@ -10,12 +10,15 @@ namespace PHPSu\ShellCommandBuilder\Literal;
  */
 final class ShellExecutable extends ShellWord
 {
-    protected $isArgument = true;
-    protected $spaceAfterValue = false;
-    protected $isEscaped = false;
-    protected $delimiter = '';
-    protected $prefix = '';
-    protected $suffix = '';
+    protected const IS_ARGUMENT = true;
+
+    protected bool $spaceAfterValue = false;
+
+    protected bool $isEscaped = false;
+
+    protected string $delimiter = '';
+
+    protected string $suffix = '';
 
     public function __construct(string $executable)
     {

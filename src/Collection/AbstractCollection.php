@@ -13,22 +13,15 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 abstract class AbstractCollection implements ShellInterface
 {
-    /** @var CollectionTuple|null */
-    protected $tuple;
+    protected CollectionTuple|null $tuple = null;
 
-    /**
-     * @param string|ShellInterface $command
-     * @param string $join
-     * @return CollectionTuple
-     * @throws ShellBuilderException
-     */
-    protected function toTuple($command, string $join): CollectionTuple
+    protected function toTuple(ShellInterface|string $command, string $join): CollectionTuple
     {
         return CollectionTuple::create($command, $join);
     }
 
     /**
-     * @return array<string|ShellInterface|array<mixed>>
+     * @return array<ShellInterface|string|array<mixed>>
      * @throws ShellBuilderException
      */
     public function __toArray(): array
@@ -36,6 +29,7 @@ abstract class AbstractCollection implements ShellInterface
         if ($this->tuple === null) {
             throw new ShellBuilderException('Tuple has not been set yet - collection cannot be parsed to array');
         }
+
         return $this->tuple->__toArray();
     }
 

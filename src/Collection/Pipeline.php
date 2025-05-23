@@ -6,7 +6,6 @@ namespace PHPSu\ShellCommandBuilder\Collection;
 
 use PHPSu\ShellCommandBuilder\Definition\ControlOperator;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
-use PHPSu\ShellCommandBuilder\ShellCommand;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
 /**
@@ -15,24 +14,14 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 final class Pipeline extends AbstractCollection
 {
-    /**
-     * @param string|ShellInterface $command
-     * @return $this
-     * @throws ShellBuilderException
-     */
-    public static function pipe($command): self
+    public static function pipe(ShellInterface|string $command): self
     {
         $pipeline = new self();
         $pipeline->tuple = $pipeline->toTuple($command, ControlOperator::PIPELINE);
         return $pipeline;
     }
 
-    /**
-     * @param string|ShellInterface $command
-     * @return $this
-     * @throws ShellBuilderException
-     */
-    public static function pipeErrorForward($command): self
+    public static function pipeErrorForward(ShellInterface|string $command): self
     {
         $pipeline = new self();
         $pipeline->tuple = $pipeline->toTuple($command, ControlOperator::PIPELINE_WITH_STDERR_FORWARD);

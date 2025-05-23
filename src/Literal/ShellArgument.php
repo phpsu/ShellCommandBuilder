@@ -13,23 +13,21 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 final class ShellArgument extends ShellWord
 {
-    protected $isArgument = true;
-    protected $delimiter = '';
+    protected const IS_ARGUMENT = true;
 
-    /**
-     * ShellArgument constructor.
-     * @param ShellInterface|string $argument
-     */
-    public function __construct($argument)
+    protected string $delimiter = '';
+
+    public function __construct(ShellInterface|string $argument)
     {
         parent::__construct('', $argument);
     }
 
     protected function validate(): void
     {
-        if (is_string($this->value) && empty($this->value)) {
+        if (!$this->value) {
             throw new ShellBuilderException('Argument cant be empty');
         }
+
         parent::validate();
     }
 }

@@ -9,20 +9,21 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 
 final class ShellVariable extends ShellWord
 {
-    protected $isVariable = true;
-    protected $useAssignOperator = true;
-    protected $wrapAsSubcommand = true;
-    protected $spaceAfterValue = false;
-    /** @var bool */
-    private $noSemicolon = false;
+    protected const IS_VARIABLE = true;
+
+    protected bool $useAssignOperator = true;
+
+    protected bool $wrapAsSubcommand = true;
+
+    protected bool $spaceAfterValue = false;
+
+    private bool $noSemicolon = false;
 
     /**
      * ShellVariable constructor.
-     * @param string $option
-     * @param ShellInterface|string $value
      * @throws ShellBuilderException
      */
-    public function __construct(string $option, $value)
+    public function __construct(string $option, ShellInterface|string $value)
     {
         parent::__construct($option, $value);
         if ($this->value instanceof ShellInterface) {

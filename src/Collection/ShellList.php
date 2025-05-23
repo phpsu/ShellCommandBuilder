@@ -16,12 +16,8 @@ final class ShellList extends AbstractCollection
 {
     /**
      * Returns something like: || echo "hello world"
-     *
-     * @param string|ShellInterface $command
-     * @return $this
-     * @throws ShellBuilderException
      */
-    public static function addOr($command): self
+    public static function addOr(ShellInterface|string $command): self
     {
         $list = new self();
         $list->tuple = $list->toTuple($command, ControlOperator::OR_OPERATOR);
@@ -30,12 +26,8 @@ final class ShellList extends AbstractCollection
 
     /**
      * Returns something like: && echo "hello world"
-     *
-     * @param string|ShellInterface $command
-     * @return $this
-     * @throws ShellBuilderException
      */
-    public static function addAnd($command): self
+    public static function addAnd(ShellInterface|string $command): self
     {
         $list = new self();
         $list->tuple = $list->toTuple($command, ControlOperator::AND_OPERATOR);
@@ -44,12 +36,8 @@ final class ShellList extends AbstractCollection
 
     /**
      * Returns something like: ; echo "hello world"
-     *
-     * @param string|ShellInterface $command
-     * @return $this
-     * @throws ShellBuilderException
      */
-    public static function add($command): self
+    public static function add(ShellInterface|string $command): self
     {
         $list = new self();
         $list->tuple = $list->toTuple($command, ControlOperator::COMMAND_DELIMITER);
@@ -58,12 +46,8 @@ final class ShellList extends AbstractCollection
 
     /**
      * Returns something like: & echo "hello world"
-     *
-     * @param string|ShellInterface $command
-     * @return static
-     * @throws ShellBuilderException
      */
-    public static function async($command): self
+    public static function async(ShellInterface|string $command): self
     {
         $list = new self();
         $list->tuple = $list->toTuple($command, ControlOperator::BASH_AMPERSAND);

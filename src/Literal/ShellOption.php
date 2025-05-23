@@ -13,20 +13,20 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 final class ShellOption extends ShellWord
 {
-    protected $isOption = true;
-    protected $prefix = ShellWord::OPTION_CONTROL;
+    protected const IS_OPTION = true;
+
+    protected string $prefix = ShellWord::OPTION_CONTROL;
 
     /**
      * ShellArgument constructor.
-     * @param string $option
-     * @param ShellInterface|string $value
      * @throws ShellBuilderException
      */
-    public function __construct(string $option, $value = '')
+    public function __construct(string $option, ShellInterface|string $value = '')
     {
-        if (is_string($value) && empty($value)) {
+        if (!$value) {
             $this->delimiter = '';
         }
+
         parent::__construct($option, $value);
     }
 }

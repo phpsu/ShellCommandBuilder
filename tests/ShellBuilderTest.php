@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Tests;
 
+use AssertionError;
 use PHPSu\ShellCommandBuilder\Conditional\ArithmeticExpression;
 use PHPSu\ShellCommandBuilder\Conditional\FileExpression;
 use PHPSu\ShellCommandBuilder\Conditional\StringExpression;
@@ -174,30 +175,6 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals($result, (string)$builder);
     }
 
-    public function testFaultyAddCommand(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        $builder = new ShellBuilder();
-        $builder->add(false);
-    }
-
-    public function testFaultyPipeCommand(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        $builder = new ShellBuilder();
-        $builder->add('a')->pipe(false);
-    }
-
-    public function testFaultyOrCommand(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        $builder = new ShellBuilder();
-        $builder->add('a')->or(false);
-    }
-
     public function testFaultyCommandChainNoBaseCommand(): void
     {
         $this->expectException(ShellBuilderException::class);
@@ -221,7 +198,7 @@ final class ShellBuilderTest extends TestCase
         $this->assertEquals('c | a', (string)$builder);
         $debug = $builder->__toArray();
         $this->assertCount(2, $debug);
-        $this->assertEquals('c', $debug[0]['executable']);
+        $this->assertEquals('c', $debug[0]['executable'] ?? null);
     }
 
     public function testRedirectTo(): void
@@ -591,7 +568,7 @@ final class ShellBuilderTest extends TestCase
         $debug = $command->__toArray();
         $this->assertCount(3, $debug);
         // checking whether it deeply arrayfies
-        $this->assertEquals('cat', $debug[0]['compare']['executable']);
+        $this->assertEquals('cat', $debug[0]['compare']['executable'] ?? null);
         $this->assertEquals('&&', $debug[1][0]);
         $this->assertEquals('|', $debug[2][0]);
     }
@@ -602,7 +579,7 @@ final class ShellBuilderTest extends TestCase
         $echo = ShellBuilder::command('echo')->addArgument('hello world');
         $grep = ShellBuilder::command('grep')->addShortOption('e', 'world');
         $builder = ShellBuilder::new()->add($echo)->pipe($grep);
-        $this->assertJson(json_encode($builder));
+        $this->assertJson(json_encode($builder, JSON_THROW_ON_ERROR));
     }
 
     public function testShellBuilderProcessSubstitions(): void
@@ -709,26 +686,14 @@ final class ShellBuilderTest extends TestCase
     {
         // if false
         $builder = ShellBuilder::new()
-            ->if(false, static function (ShellBuilder $builder) {
-                return $builder->add('echo');
-            })
-            ->ifThis(static function (ShellBuilder $builder) {
-                return $builder->hasCommands() === false;
-            }, static function (ShellBuilder $builder) {
-                return $builder->add('print');
-            });
+            ->if(false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('echo'))
+            ->ifThis(static fn(ShellBuilder $builder): bool => $builder->hasCommands() === false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'));
         static::assertEquals('print', (string)$builder);
 
         // if true
         $builder = ShellBuilder::new()
-            ->if(true, static function (ShellBuilder $builder) {
-                return $builder->add('echo');
-            })
-            ->ifThis(static function (ShellBuilder $builder) {
-                return $builder->hasCommands() === false;
-            }, static function (ShellBuilder $builder) {
-                return $builder->add('print');
-            });
+            ->if(true, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('echo'))
+            ->ifThis(static fn(ShellBuilder $builder): bool => $builder->hasCommands() === false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'));
         static::assertEquals('echo', (string)$builder);
     }
 
@@ -737,45 +702,27 @@ final class ShellBuilderTest extends TestCase
         $builder = ShellBuilder::new()
             ->if(
                 false,
-                static function (ShellBuilder $builder) {
-                    return $builder->add('echo');
-                },
-                static function (ShellBuilder $builder) {
-                    return $builder->add('awk');
-                }
+                static fn(ShellBuilder $builder): ShellBuilder => $builder->add('echo'),
+                static fn(ShellBuilder $builder): ShellBuilder => $builder->add('awk')
             )
-            ->ifThis(static function (ShellBuilder $builder) {
-                return $builder->hasCommands() === false;
-            }, static function (ShellBuilder $builder) {
-                return $builder->add('print');
-            }, static function (ShellBuilder $builder) {
-                return $builder->and('print');
-            });
+            ->ifThis(static fn(ShellBuilder $builder): bool => $builder->hasCommands() === false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'), static fn(ShellBuilder $builder): ShellBuilder => $builder->and('print'));
         static::assertEquals('awk && print', (string)$builder);
     }
 
     public function testComplexCondiditionalArgumentsWithWrongArguments(): void
     {
-        self::expectException(\AssertionError::class);
+        self::expectException(AssertionError::class);
         ShellBuilder::new()
-            ->ifThis(static function (ShellBuilder $builder) {
-                return 'world';
-            }, static function (ShellBuilder $builder) {
-                return $builder->add('print');
-            }, static function (ShellBuilder $builder) {
-                return 'bla';
-            });
+            ->ifThis(static fn(ShellBuilder $builder): string => 'world', static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'), static fn(ShellBuilder $builder): string => 'bla');
     }
 
     public function testCondiditionalArgumentsWithWrongArguments(): void
     {
-        self::expectException(\AssertionError::class);
+        self::expectException(AssertionError::class);
         ShellBuilder::new()
             ->if(
                 true,
-                static function (ShellBuilder $builder) {
-                    return 'hello world';
-                }
+                static fn(ShellBuilder $builder): string => 'hello world'
             );
     }
 

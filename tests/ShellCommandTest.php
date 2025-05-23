@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Tests;
 
+use DateTime;
 use PHPSu\ShellCommandBuilder\Definition\GroupType;
 use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellBuilder;
@@ -31,7 +32,7 @@ class ShellCommandTest extends TestCase
             ->addOption('color', 'always')
             ->addArgument('root')
             ->addArgument('/etc/passwd', false);
-        $this->assertEquals('GREP_COLOR=\'1;35\' grep --color \'always\' \'root\' /etc/passwd', (string)$command);
+        $this->assertEquals("GREP_COLOR='1;35' grep --color 'always' 'root' /etc/passwd", (string)$command);
     }
 
     public function testShellCommandWithCommandSubstitution(): void
@@ -75,7 +76,7 @@ class ShellCommandTest extends TestCase
     {
         $command = new ShellCommand('echo');
         $command->invert()->addShortOption('e', 'hello world');
-        $this->assertEquals('! echo -e \'hello world\'', (string)$command);
+        $this->assertEquals("! echo -e 'hello world'", (string)$command);
     }
 
     public function testEscapeOptionWithAssignOperator(): void
@@ -98,7 +99,7 @@ class ShellCommandTest extends TestCase
                 'escaped' => true,
                 'withAssign' => true,
                 'spaceAfterValue' => true,
-                'value' => '\'true\'',
+                'value' => "'true'",
                 'argument' =>  "color",
             ]
         ], $command['arguments']);
@@ -152,7 +153,7 @@ class ShellCommandTest extends TestCase
                 'escaped' => true,
                 'withAssign' => true,
                 'spaceAfterValue' => true,
-                'value' => '\'b\'',
+                'value' => "'b'",
                 'argument' => "A",
             ]
         ], $command['environmentVariables']);
@@ -166,22 +167,18 @@ class ShellCommandTest extends TestCase
                 'escaped' => true,
                 'withAssign' => true,
                 'spaceAfterValue' => true,
-                'value' => '\'true\'',
+                'value' => "'true'",
                 'argument' =>  "color",
             ]
         ], $command['arguments']);
     }
 
-    public function testConditionalArguments()
+    public function testConditionalArguments(): void
     {
         $command = ShellBuilder::command('test')
-            ->if(1 + 1 === 3, static function (ShellCommand $command) {
-                return $command->addOption('f', '1 + 1 = 3');
-            })
-            ->if(1 + 1 === 2, static function (ShellCommand $command) {
-                return $command->addOption('t', '1 + 1 = 2');
-            });
-        static::assertEquals((string)$command, 'test --t \'1 + 1 = 2\'');
+            ->if(false, static fn(ShellCommand $command): ShellCommand => $command->addOption('f', 'false'))
+            ->if(true, static fn(ShellCommand $command): ShellCommand => $command->addOption('t', 'true'));
+        static::assertEquals((string)$command, "test --t 'true'");
     }
 
     public function testUnEscapedOption(): void
@@ -194,33 +191,5 @@ class ShellCommandTest extends TestCase
     {
         $command = (new ShellCommand('ls'))->addOption('color', 'true', false, false);
         $this->assertEquals('ls --color true', (string)$command);
-    }
-
-    public function testShortOptionWithWrongType(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        (new ShellCommand('ls'))->addShortOption('la', false);
-    }
-
-    public function testOptionWithWrongType(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        (new ShellCommand('ls'))->addOption('la', 124343);
-    }
-
-    public function testArgumentWithWrongType(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        (new ShellCommand('ls'))->addArgument(new \DateTime());
-    }
-
-    public function testNoSpaceArgumentWithWrongType(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
-        (new ShellCommand('ls'))->addNoSpaceArgument(new GroupType());
     }
 }
