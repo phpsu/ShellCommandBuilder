@@ -102,7 +102,7 @@ final class ShellWordTest extends TestCase
     {
         $word = new ShellVariable('hello', 'world');
         $word->setNoSemicolon(true);
-        $this->assertEquals('hello=\'world\'', $word->__toString());
+        $this->assertEquals("hello='world'", $word->__toString());
 
         $word = new ShellVariable('hello', ShellBuilder::command('echo'));
         $this->assertEquals('hello=$(echo);', $word->__toString());
@@ -142,6 +142,7 @@ final class ShellWordTest extends TestCase
     {
         $word = new ShellArgument((new ShellCommand('hello'))->toggleCommandSubstitution());
         $word->setSpaceAfterValue(false);
+
         $array = $word->__toArray();
         $this->assertEquals(
             [
@@ -185,22 +186,6 @@ final class ShellWordTest extends TestCase
             ],
             $word->__toArray()
         );
-    }
-
-    public function testShellWordAsFaultyValueTypeArgument(): void
-    {
-        $word = new ShellOption('hallo', 12345);
-        $this->expectException(ShellBuilderException::class);
-        $this->expectExceptionMessage('Value must be an instance of ShellInterface or a string');
-        $word->__toString();
-    }
-
-    public function testShellWordWithWrongArgumentType(): void
-    {
-        $word = new ShellArgument(12345);
-        $this->expectExceptionMessage('Value must be an instance of ShellInterface or a string');
-        $this->expectException(ShellBuilderException::class);
-        $word->__toString();
     }
 
     public function testShellWordWithEmptyArgument(): void

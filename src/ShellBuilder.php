@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder;
 
+use JsonSerializable;
 use PHPSu\ShellCommandBuilder\Collection\CollectionTuple;
 use PHPSu\ShellCommandBuilder\Collection\Pipeline;
 use PHPSu\ShellCommandBuilder\Collection\Redirection;
@@ -15,29 +16,27 @@ use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\Literal\ShellVariable;
 use TypeError;
 
-final class ShellBuilder implements ShellInterface, \JsonSerializable
+final class ShellBuilder implements ShellInterface, JsonSerializable
 {
     use ShellConditional;
 
     /** @var array<ShellInterface|string>  */
-    private $commandList = [];
-    /** @var int */
-    private $groupType;
+    private array $commandList = [];
+
     /**
      * name of the coprocess - empty string means anonymous
-     * @var null|string
      */
-    private $asynchronously;
-    /** @var bool */
-    private $processSubstitution = false;
-    /** @var bool */
-    private $commandSubstitution = false;
+    private ?string $asynchronously = null;
+
+    private bool $processSubstitution = false;
+
+    private bool $commandSubstitution = false;
+
     /** @var array<string, ShellVariable> */
-    private $variables = [];
+    private array $variables = [];
 
     /**
      * This is a shortcut for quicker fluid access to the shell builder
-     * @return static
      */
     public static function new(): self
     {
@@ -46,17 +45,14 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
 
     /**
      * This is a shortcut for quicker fluid access to the command api
-     * @param string $executable
-     * @return ShellCommand
      */
     public static function command(string $executable): ShellCommand
     {
         return new ShellCommand($executable, new self());
     }
 
-    public function __construct(int $groupType = GroupType::NO_GROUP)
+    public function __construct(private readonly int $groupType = GroupType::NO_GROUP)
     {
-        $this->groupType = $groupType;
     }
 
     public function createCommand(string $name, bool $withNewBuilder = false): ShellCommand
@@ -71,25 +67,23 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param string $variable
-     * @param string|ShellInterface $value
-     * @param bool $useBackticks
      * @param bool $escape is the value instance of ShellInterface, then this variable is automatically false
-     * @param bool $noSemicolon
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addVariable(string $variable, $value, bool $useBackticks = false, bool $escape = true, bool $noSemicolon = false): self
+    public function addVariable(string $variable, ShellInterface|string $value, bool $useBackticks = false, bool $escape = true, bool $noSemicolon = false): self
     {
         if (isset($this->variables[$variable])) {
             throw new ShellBuilderException('Variable has already been declared.');
         }
+
         $shellVariable = new ShellVariable($variable, $value);
         $shellVariable->wrapWithBackticks($useBackticks);
         $shellVariable->setNoSemicolon($noSemicolon);
         if (is_string($value)) {
             $shellVariable->setEscape($escape);
         }
+
         $this->variables[$variable] = $shellVariable;
         return $this;
     }
@@ -101,97 +95,89 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param string|ShellInterface ...$commands
      * @return $this
      * @throws ShellBuilderException
      */
-    public function add(...$commands): self
+    public function add(ShellInterface|string ...$commands): self
     {
         foreach ($commands as $command) {
             $this->addSingle($command);
         }
+
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
-     * @param bool $raw
      * @return $this
      * @throws ShellBuilderException
      */
-    public function addSingle($command, bool $raw = false): self
+    public function addSingle(ShellInterface|string $command, bool $raw = false): self
     {
         $command = $raw ? $command : $this->parseCommand($command, true);
-        if (empty($this->commandList)) {
+        if ($this->commandList === []) {
             $this->commandList[] = $command;
             return $this;
         }
+
         $this->commandList[] = ShellList::add($command);
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function and($command): self
+    public function and(ShellInterface|string $command): self
     {
         $this->commandList[] = ShellList::addAnd($this->parseCommand($command));
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function or($command): self
+    public function or(ShellInterface|string $command): self
     {
         $this->commandList[] = ShellList::addOr($this->parseCommand($command));
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function async($command = ''): self
+    public function async(ShellInterface|string $command = ''): self
     {
         $this->commandList[] = ShellList::async($this->parseCommand($command));
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function pipe($command): self
+    public function pipe(ShellInterface|string $command): self
     {
         $this->commandList[] = Pipeline::pipe($this->parseCommand($command));
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function pipeWithForward($command): self
+    public function pipeWithForward(ShellInterface|string $command): self
     {
         $this->commandList[] = Pipeline::pipeErrorForward($this->parseCommand($command));
         return $this;
     }
 
     /**
-     * @param string|ShellInterface $command
-     * @param bool $append
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectOutput($command, bool $append = false): self
+    public function redirectOutput(ShellInterface|string $command, bool $append = false): self
     {
         $command = $this->parseCommand($command);
         $this->commandList[] = Redirection::redirectOutput($command, $append);
@@ -199,11 +185,10 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectInput($command): self
+    public function redirectInput(ShellInterface|string $command): self
     {
         $command = $this->parseCommand($command);
         $this->commandList[] = Redirection::redirectInput($command);
@@ -211,11 +196,10 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param string|ShellInterface $command
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirectError($command): self
+    public function redirectError(ShellInterface|string $command): self
     {
         $command = $this->parseCommand($command);
         $this->commandList[] = Redirection::redirectError($command);
@@ -223,12 +207,10 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param string|ShellInterface $command
-     * @param bool $toLeft
      * @return $this
      * @throws ShellBuilderException
      */
-    public function redirect($command, bool $toLeft = true): self
+    public function redirect(ShellInterface|string $command, bool $toLeft = true): self
     {
         $command = $this->parseCommand($command);
         $this->commandList[] = Redirection::redirectBetweenFiles($command, $toLeft);
@@ -236,14 +218,9 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
     }
 
     /**
-     * @param ShellInterface|string $command
-     * @param bool $toLeft
-     * @param null|int $firstDescriptor
-     * @param null|int $secondDescriptor
-     * @return static
      * @throws ShellBuilderException
      */
-    public function redirectDescriptor($command, bool $toLeft, int $firstDescriptor = null, int $secondDescriptor = null): self
+    public function redirectDescriptor(ShellInterface|string $command, bool $toLeft, ?int $firstDescriptor = null, ?int $secondDescriptor = null): self
     {
         $command = $this->parseCommand($command);
         $this->commandList[] = Redirection::redirectBetweenDescriptors($command, $toLeft, $firstDescriptor, $secondDescriptor);
@@ -262,12 +239,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         return $this;
     }
 
-    /**
-     * @param string|ShellInterface $fileEnding
-     * @return ShellBuilder
-     * @throws ShellBuilderException
-     */
-    public function addFileEnding($fileEnding): self
+    public function addFileEnding(ShellInterface|string $fileEnding): self
     {
         $tuple = CollectionTuple::create($fileEnding, '.');
         $tuple
@@ -298,55 +270,55 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
 
     public function hasCommands(): bool
     {
-        return empty($this->commandList) === false || empty($this->variables) === false;
+        return $this->commandList !== [] || $this->variables !== [];
     }
 
     /**
-     * @param string|ShellInterface $command
-     * @param bool $allowEmpty
-     * @return ShellInterface
      * @throws ShellBuilderException
      */
-    private function parseCommand($command, bool $allowEmpty = false): ShellInterface
+    private function parseCommand(ShellInterface|string $command, bool $allowEmpty = false): ShellInterface
     {
         if (is_string($command)) {
             $command = $this->createCommand($command);
         }
+
         try {
-            $this->validateCommand($command, $allowEmpty);
-        } catch (TypeError $typeError) {
+            $this->validateCommand($allowEmpty);
+        } catch (TypeError) {
             throw new ShellBuilderException('Provided the wrong type - only ShellCommand and ShellBuilder allowed');
         }
+
         return $command;
     }
 
-    /** @noinspection PhpUnusedParameterInspection */
-    private function validateCommand(ShellInterface $command, bool $allowEmpty): void
+    private function validateCommand(bool $allowEmpty): void
     {
-        if (!$allowEmpty && empty($this->commandList)) {
+        if (!$allowEmpty && $this->commandList === []) {
             throw new ShellBuilderException('You have to first add a command before you can combine it');
         }
     }
 
     private function variablesToString(): string
     {
-        $variableString = '';
-        foreach ($this->variables as $variable) {
-            $variableString .= $variable;
-        }
+        $variableString = implode('', $this->variables);
+
         if ($variableString !== '') {
             $variableString .= ' ';
         }
+
         return $variableString;
     }
 
+    /**
+     * @return list<string|array<mixed>>
+     */
     public function jsonSerialize(): array
     {
         return $this->__toArray();
     }
 
     /**
-     * @return array<mixed>
+     * @return list<string|array<mixed>>
      */
     public function __toArray(): array
     {
@@ -354,6 +326,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         foreach ($this->commandList as $item) {
             $commands[] = is_string($item) ? $item : $item->__toArray();
         }
+
         return $commands;
     }
 
@@ -363,9 +336,9 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
         if ($this->asynchronously !== null) {
             $result = sprintf('coproc %s%s', $this->asynchronously, $this->asynchronously !== '' ? ' ' : '');
         }
-        foreach ($this->commandList as $command) {
-            $result .= $command;
-        }
+
+        $result .= implode('', $this->commandList);
+
         if ($this->groupType === GroupType::SAMESHELL_GROUP) {
             return sprintf(
                 '%s %s;%s',
@@ -374,14 +347,17 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
                 ControlOperator::CURLY_BLOCK_DEFINITON_CLOSE
             );
         }
+
         if ($this->groupType === GroupType::SUBSHELL_GROUP) {
             $substitionType = '';
             if ($this->commandSubstitution) {
                 $substitionType = '$';
             }
+
             if ($this->processSubstitution) {
                 $substitionType = '<';
             }
+
             return sprintf(
                 '%s%s%s%s',
                 $substitionType,
@@ -390,6 +366,7 @@ final class ShellBuilder implements ShellInterface, \JsonSerializable
                 ControlOperator::BLOCK_DEFINITON_CLOSE
             );
         }
+
         return rtrim(sprintf('%s%s', $this->variablesToString(), $result));
     }
 }

@@ -1,53 +1,49 @@
 {
-    "name": "phpsu/shellcommandbuilder",
-    "description": "Fluid Builder to create shell commands",
-    "type": "library",
-    "config": {
-        "optimize-autoloader": true,
-        "process-timeout": 0
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^8.5 || ^9.4",
-        "vimeo/psalm": "^4.1",
-        "infection/infection": "^0.15.3 || ^0.18.2 || ^0.20.1",
-        "spatie/phpunit-watcher": "^1.24 || dev-master#071fbbf",
-        "phpunit/php-invoker": "^2.0 || ^3.1",
-        "pluswerk/grumphp-config": "^4.0.1"
-    },
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Christian Rodriguez Benthake",
-            "email": "git@cben.co"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "PHPSu\\ShellCommandBuilder\\": "src"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "PHPSu\\ShellCommandBuilder\\Tests\\": "tests"
-        }
-    },
-    "scripts": {
-        "test": "vendor/bin/phpunit -c tests/phpunit.xml --testdox --color=always",
-        "test:watch": "vendor/bin/phpunit-watcher watch -c tests/phpunit.xml --testdox",
-        "infection": "vendor/bin/infection --threads=4 --only-covered --min-msi=100 --min-covered-msi=100 --ansi",
-        "psalm": "vendor/bin/psalm"
-    },
-    "minimum-stability": "stable",
-    "require": {
-        "php": ">=7.2",
-        "ext-json": "*"
-    },
-    "extra": {
-        "pluswerk/grumphp-config": {
-            "auto-setting": false
-        },
-        "grumphp": {
-            "config-default-path": "vendor/pluswerk/grumphp-config/grumphp.yml"
-        }
+  "name": "phpsu/shellcommandbuilder",
+  "description": "Fluid Builder to create shell commands",
+  "license": "MIT",
+  "type": "library",
+  "authors": [
+    {
+      "name": "Christian Rodriguez Benthake",
+      "email": "git@cben.co"
     }
+  ],
+  "require": {
+    "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "infection/infection": "^0.28.1 || ^0.29.14",
+    "phpunit/phpunit": "^10.0 || ^12.0",
+    "pluswerk/grumphp-config": "^7 || ^10",
+    "spatie/phpunit-watcher": "^1.24 || dev-master#071fbbf"
+  },
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "PHPSu\\ShellCommandBuilder\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "PHPSu\\ShellCommandBuilder\\Tests\\": "tests"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "ergebnis/composer-normalize": true,
+      "infection/extension-installer": true,
+      "phpro/grumphp": true,
+      "phpstan/extension-installer": true,
+      "pluswerk/grumphp-config": true
+    },
+    "optimize-autoloader": true,
+    "process-timeout": 0
+  },
+  "scripts": {
+    "infection": "XDEBUG_MODE=coverage vendor/bin/infection --threads=4 --only-covered --min-msi=99 --min-covered-msi=99 --ansi",
+    "test": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/phpunit.xml --testdox --color=always",
+    "test:watch": "XDEBUG_MODE=coverage vendor/bin/phpunit-watcher watch -c tests/phpunit.xml --testdox"
+  }
 }

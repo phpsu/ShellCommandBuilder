@@ -12,8 +12,10 @@ final class Pattern
     public const SHELLWORD_PATTERN = <<<REGEXP
 /\G\s*(?>([^\s\\\\\'\"]+)|'([^\']*)'|"((?:[^\"\\\\]|\\\\.)*)"|(\\\\.?)|(\S))(\s|\z)?/m
 REGEXP;
+
     // @see https://github.com/jimmycuadra/rust-shellwords/blob/master/src/lib.rs#L104
     public const METACHAR_PATTERN = /** @lang PhpRegExp */ '/\\\\([$`"\\\\\n])/';
+
     public const ESCAPE_PATTERN = /** @lang PhpRegExp */ '/\\\\(.)/';
 
     /**
@@ -21,8 +23,6 @@ REGEXP;
      * The pattern being used is based on a combination of the ruby and rust implementation of the same functionality
      * It derives from the original UNIX Bourne documentation
      *
-     * @psalm-pure
-     * @param string $input
      * @return array<string>
      * @throws ShellBuilderException
      */
@@ -34,18 +34,21 @@ REGEXP;
         preg_match_all(self::SHELLWORD_PATTERN, $input . ' ', $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
         /** @var array<int, null|string> $match */
         foreach ($matches as $match) {
-            if ($match[5] ?? false) {
+            if ($match[5] ?? '') {
                 throw new ShellBuilderException('The given input has mismatching Quotes');
             }
+
             $doubleQuoted = '';
             if (isset($match[3])) {
                 $doubleQuoted = preg_replace(self::METACHAR_PATTERN, '$1', $match[3]);
             }
+
             $escaped = '';
             if (isset($match[4])) {
                 $escaped = preg_replace(self::ESCAPE_PATTERN, '$1', $match[4]);
                 $escaped .= '';
             }
+
             $field .= implode('', [$match[1], $match[2] ?? '', $doubleQuoted, $escaped]);
             $seperator = $match[6] ?? '';
             if ($seperator !== '') {
@@ -53,6 +56,7 @@ REGEXP;
                 $field = '';
             }
         }
+
         return $words;
     }
 }

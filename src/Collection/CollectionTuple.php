@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PHPSu\ShellCommandBuilder\Collection;
 
-use PHPSu\ShellCommandBuilder\Exception\ShellBuilderException;
 use PHPSu\ShellCommandBuilder\ShellInterface;
 
 /**
@@ -13,27 +12,16 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 final class CollectionTuple implements ShellInterface
 {
-    /** @var string */
-    protected $join = '';
+    private string $join = '';
 
-    /** @var string|ShellInterface */
-    protected $value = '';
-    /** @var bool */
-    private $noSpaceBeforeJoin = false;
-    /** @var bool */
-    private $noSpaceAfterJoin = false;
+    private ShellInterface|string $value = '';
 
-    /**
-     * @param string|ShellInterface|mixed $value
-     * @param string $join
-     * @return static
-     * @throws ShellBuilderException
-     */
-    public static function create($value, string $join = ''): self
+    private bool $noSpaceBeforeJoin = false;
+
+    private bool $noSpaceAfterJoin = false;
+
+    public static function create(ShellInterface|string $value, string $join = ''): self
     {
-        if (!(is_string($value) || $value instanceof ShellInterface)) {
-            throw new ShellBuilderException('Value must be of Type string or an instance of ShellInterface');
-        }
         $tuple = new self();
         $tuple->value = $value;
         $tuple->join = $join;
@@ -53,7 +41,7 @@ final class CollectionTuple implements ShellInterface
     }
 
     /**
-     * @return array<string|ShellInterface|array<mixed>>
+     * @return array<ShellInterface|string|array<mixed>>
      */
     public function __toArray(): array
     {

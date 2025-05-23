@@ -13,17 +13,17 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 final class ShellEnvironmentVariable extends ShellWord
 {
-    protected $isEnvironmentVariable = true;
-    protected $useAssignOperator = true;
-    protected $nameUpperCase = true;
+    protected const IS_ENVIRONMENT_VARIABLE = true;
+
+    protected bool $useAssignOperator = true;
+
+    protected bool $nameUpperCase = true;
 
     /**
      * ShellArgument constructor.
-     * @param string $option
-     * @param ShellInterface|string $value
      * @throws ShellBuilderException
      */
-    public function __construct(string $option, $value)
+    public function __construct(string $option, ShellInterface|string $value)
     {
         parent::__construct($option, $value);
     }

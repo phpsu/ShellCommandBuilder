@@ -13,26 +13,23 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
  */
 abstract class BasicExpression implements ShellInterface
 {
-    /**
-     * This is not POSIX-compatible (only eg. Korn and Bash), beware before using it
-     * @var bool
-     */
-    protected $bashEnhancedBrackets = false;
-    /** @var bool this is always double quoted */
-    protected $escapedValue = false;
-    /** @var bool */
-    private $negateExpression;
-    /** @var string|ShellInterface */
-    protected $compare = '';
-    /** @var string|ShellInterface */
-    protected $compareWith = '';
-    /** @var string */
-    protected $operator = '';
+    /** @var bool this is always double-quoted */
+    protected bool $escapedValue = false;
 
-    public function __construct(bool $useBashBrackets, bool $negateExpression)
-    {
-        $this->negateExpression = $negateExpression;
-        $this->bashEnhancedBrackets = $useBashBrackets;
+
+    protected ShellInterface|string $compare = '';
+
+    protected ShellInterface|string $compareWith = '';
+
+    protected string $operator = '';
+
+    public function __construct(
+        /**
+         * This is not POSIX-compatible (only eg. Korn and Bash), beware of using it
+         */
+        protected bool $bashEnhancedBrackets,
+        private readonly bool $negateExpression
+    ) {
     }
 
     public function escapeValue(bool $enable): BasicExpression
@@ -41,42 +38,29 @@ abstract class BasicExpression implements ShellInterface
         return $this;
     }
 
-    /**
-     * @todo with min. support of php 7.4 this can be fully implemented here
-     * @param bool $useBashBrackets
-     * @param bool $negateExpression
-     * @return mixed
-     */
-    abstract public static function create(bool $useBashBrackets = false, bool $negateExpression = false);
+    abstract public static function create(bool $useBashBrackets = false, bool $negateExpression = false): static;
 
 
     /**
-     * @param string|ShellInterface $value
      * @return string|array<mixed>
      */
-    private function getValueDebug($value)
+    private function getValueDebug(ShellInterface|string $value): array|string
     {
         if ($value instanceof ShellInterface) {
             return $value->__toArray();
         }
+
         return $value;
     }
 
-    /**
-     * @param string|ShellInterface $value
-     * @return string
-     */
-    private function getValue($value): string
+    private function getValue(ShellInterface|string $value): string
     {
-        $return = $value;
-        if ($value instanceof ShellInterface) {
-            $return = $value->__toString();
-        }
         if ($this->escapedValue) {
             /** @psalm-suppress ImplicitToStringCast */
-            $return = sprintf('"%s"', $return);
+            return sprintf('"%s"', $value);
         }
-        return $return;
+
+        return (string)$value;
     }
 
     public function __toString(): string

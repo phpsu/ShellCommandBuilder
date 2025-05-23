@@ -1,39 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        bootstrap="phpunit-bootstrap.php"
-        convertErrorsToExceptions="true"
-        convertNoticesToExceptions="true"
-        convertWarningsToExceptions="true"
-        beStrictAboutTestsThatDoNotTestAnything="true"
-        beStrictAboutCoversAnnotation="true"
-        beStrictAboutOutputDuringTests="true"
-        beStrictAboutChangesToGlobalState="true"
-        enforceTimeLimit="true"
-        executionOrder="default"
-        resolveDependencies="true"
-        timeoutForLargeTests="1"
-        timeoutForMediumTests="1"
-        timeoutForSmallTests="1"
-        colors="true"
-        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-    <coverage>
-        <include>
-            <directory suffix=".php">../src/</directory>
-        </include>
-        <report>
-            <clover outputFile="test-results/coverage.xml"/>
-            <html outputDirectory="test-results/report" lowUpperBound="49" highLowerBound="89"/>
-            <text outputFile="test-results/report.txt" showUncoveredFiles="false"/>
-        </report>
-    </coverage>
-    <testsuites>
-        <testsuite name="All">
-            <directory suffix="Test.php">../tests/</directory>
-        </testsuite>
-    </testsuites>
-    <logging>
-        <junit outputFile="test-results/logfile.xml"/>
-        <testdoxHtml outputFile="test-results/testdox.html"/>
-        <testdoxText outputFile="test-results/testdox.txt"/>
-    </logging>
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.1/phpunit.xsd"
+         bootstrap="phpunit-bootstrap.php"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutChangesToGlobalState="true"
+
+         enforceTimeLimit="true"
+         timeoutForLargeTests="1"
+         timeoutForMediumTests="1"
+         colors="true">
+  <source>
+    <include>
+      <directory>../src</directory>
+    </include>
+  </source>
+  <coverage>
+    <report>
+      <clover outputFile="test-results/coverage.xml"/>
+      <html outputDirectory="test-results/report" lowUpperBound="49" highLowerBound="89"/>
+      <text outputFile="test-results/report.txt" showUncoveredFiles="false"/>
+    </report>
+  </coverage>
+  <testsuites>
+    <testsuite name="All">
+      <directory suffix="Test.php">../tests/</directory>
+    </testsuite>
+  </testsuites>
+  <logging>
+    <junit outputFile="test-results/logfile.xml"/>
+    <testdoxHtml outputFile="test-results/testdox.html"/>
+    <testdoxText outputFile="test-results/testdox.txt"/>
+  </logging>
 </phpunit>

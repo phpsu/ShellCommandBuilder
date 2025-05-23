@@ -23,6 +23,7 @@ final class CollectionTupleTest extends TestCase
     {
         $builder = new ShellBuilder();
         $builder->add($builder->createCommand('a'));
+
         $tuple = CollectionTuple::create($builder, ControlOperator::AND_OPERATOR);
         $this->assertEquals(' && a', (string)$tuple);
     }
@@ -31,12 +32,6 @@ final class CollectionTupleTest extends TestCase
     {
         $tuple = CollectionTuple::create((new ShellBuilder())->createCommand('a'), ControlOperator::OR_OPERATOR);
         $this->assertEquals(' || a', (string)$tuple);
-    }
-
-    public function testWithWrongType(): void
-    {
-        $this->expectException(ShellBuilderException::class);
-        CollectionTuple::create(3892740, ControlOperator::OR_OPERATOR);
     }
 
     public function testTupleToArray(): void

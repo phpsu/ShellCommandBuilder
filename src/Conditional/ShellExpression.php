@@ -9,18 +9,17 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 
 final class ShellExpression extends BasicExpression
 {
-    protected $escapedValue = true;
+    protected bool $escapedValue = true;
 
-    public static function create(bool $useBashBrackets = true, bool $negateExpression = false): ShellExpression
+    public static function create(bool $useBashBrackets = true, bool $negateExpression = false): static
     {
         return new self($useBashBrackets, $negateExpression);
     }
 
     /**
-     * @param string|ShellInterface $optname
      * @return $this
      */
-    public function isOptnameEnabled($optname): self
+    public function isOptnameEnabled(ShellInterface|string $optname): self
     {
         $this->operator = ConditionalOperator::SHELL_OPTNAME_ENABLED;
         $this->compareWith = $optname;
@@ -28,10 +27,9 @@ final class ShellExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $variable
      * @return $this
      */
-    public function isVariableSet($variable): self
+    public function isVariableSet(ShellInterface|string $variable): self
     {
         $this->operator = ConditionalOperator::SHELL_VARNAME_SET;
         $this->compareWith = $variable;
@@ -39,10 +37,9 @@ final class ShellExpression extends BasicExpression
     }
 
     /**
-     * @param string|ShellInterface $variable
      * @return $this
      */
-    public function isVariableSetWithNamedReference($variable): self
+    public function isVariableSetWithNamedReference(ShellInterface|string $variable): self
     {
         $this->operator = ConditionalOperator::SHELL_VARNAME_SET_NAMED_REFERENCE;
         $this->compareWith = $variable;

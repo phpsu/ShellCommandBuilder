@@ -17,72 +17,55 @@ use PHPSu\ShellCommandBuilder\ShellInterface;
 class ShellWord implements ShellInterface
 {
     protected const OPTION_CONTROL = '--';
+
     protected const SHORT_OPTION_CONTROL = '-';
+
     protected const EQUAL_CONTROL = '=';
 
-    /**
-     * @var bool
-     * @psalm-readonly
-     */
-    protected $isShortOption = false;
-    /**
-     * @var bool
-     * @psalm-readonly
-     */
-    protected $isOption = false;
-    /**
-     * @var bool
-     * @psalm-readonly
-     */
-    protected $isArgument = false;
-    /**
-     * @var bool
-     * @psalm-readonly
-     */
-    protected $isEnvironmentVariable = false;
-    /**
-     * @var bool
-     * @psalm-readonly
-     */
-    protected $isVariable = false;
-    /** @var bool */
-    protected $isEscaped = true;
-    /** @var bool */
-    protected $spaceAfterValue = true;
-    /** @var bool */
-    protected $useAssignOperator = false;
-    /** @var bool */
-    protected $nameUpperCase = false;
-    /** @var bool */
-    protected $wrapAsSubcommand = false;
-    /** @var bool */
-    protected $wrapWithBacktricks = false;
-    /** @var string */
-    protected $prefix = '';
-    /** @var string */
-    protected $suffix = ' ';
-    /** @var string */
-    protected $delimiter = ' ';
-    /** @var string */
-    protected $argument = '';
-    /** @var string|ShellInterface */
-    protected $value = '';
+    protected const IS_SHORT_OPTION = false;
+
+    protected const IS_OPTION = false;
+
+    protected const IS_ARGUMENT = false;
+
+    protected const IS_ENVIRONMENT_VARIABLE = false;
+
+    protected const IS_VARIABLE = false;
+
+    protected bool $isEscaped = true;
+
+    protected bool $spaceAfterValue = true;
+
+    protected bool $useAssignOperator = false;
+
+    protected bool $nameUpperCase = false;
+
+    protected bool $wrapAsSubcommand = false;
+
+    protected bool $wrapWithBacktricks = false;
+
+    protected string $prefix = '';
+
+    protected string $suffix = ' ';
+
+    protected string $delimiter = ' ';
+
+    protected string $argument;
+
 
     /**
      * The constructor is protected, you must choose one of the children
-     * @param string $argument
-     * @param string|ShellInterface $value
      * @throws ShellBuilderException
      */
-    protected function __construct(string $argument, $value = '')
+    protected function __construct(string $argument, protected ShellInterface|string $value = '')
     {
-        if (!empty($argument) && !$this->validShellWord($argument)) {
+        if ($argument !== '' && $argument !== '0' && !$this->validShellWord($argument)) {
             throw new ShellBuilderException(
                 'A Shell Argument has to be a valid Shell word and cannot contain e.g whitespace'
             );
         }
+
         $this->argument = $argument;
-        $this->value = $value;
     }
 
     public function setEscape(bool $isEscaped): self
@@ -111,16 +94,9 @@ class ShellWord implements ShellInterface
 
     protected function validate(): void
     {
-        /** @psalm-suppress DocblockTypeContradiction */
-        if (!(is_string($this->value) || $this->value instanceof ShellInterface)) {
-            throw new ShellBuilderException('Value must be an instance of ShellInterface or a string');
-        }
     }
 
     /**
-     * @psalm-pure
-     * @param string $word
-     * @return bool
      * @throws ShellBuilderException
      */
     private function validShellWord(string $word): bool
@@ -134,30 +110,34 @@ class ShellWord implements ShellInterface
         if (!$this->spaceAfterValue) {
             $this->suffix = '';
         }
+
         if ($this->useAssignOperator) {
             $this->delimiter = self::EQUAL_CONTROL;
         }
-        if (!empty($this->argument) && $this->nameUpperCase) {
+
+        if ($this->argument && $this->nameUpperCase) {
             $this->argument = strtoupper($this->argument);
         }
     }
 
     /**
-     * @param bool $debug
      * @return array<mixed>|string
      */
-    private function getValue(bool $debug = false)
+    private function getValue(bool $debug = false): array|string
     {
         $word = $this->value;
         if ($word instanceof ShellInterface) {
             if ($debug) {
                 return $word->__toArray();
             }
+
             $word = (string)$word;
         }
-        if ($this->isEscaped && !empty($word)) {
-            $word = escapeshellarg($word);
+
+        if ($this->isEscaped && ($word !== '' && $word !== '0')) {
+            return escapeshellarg($word);
         }
+
         return $word;
     }
 
@@ -168,11 +148,11 @@ class ShellWord implements ShellInterface
     {
         $this->prepare();
         return [
-            'isArgument' => $this->isArgument,
-            'isShortOption' => $this->isShortOption,
-            'isOption' => $this->isOption,
-            'isEnvironmentVariable' => $this->isEnvironmentVariable,
-            'isVariable' => $this->isVariable,
+            'isArgument' => static::IS_ARGUMENT,
+            'isShortOption' => static::IS_SHORT_OPTION,
+            'isOption' => static::IS_OPTION,
+            'isEnvironmentVariable' => static::IS_ENVIRONMENT_VARIABLE,
+            'isVariable' => static::IS_VARIABLE,
             'escaped' => $this->isEscaped,
             'withAssign' => $this->useAssignOperator,
             'spaceAfterValue' => $this->spaceAfterValue,
@@ -187,8 +167,9 @@ class ShellWord implements ShellInterface
         /** @var string $value */
         $value = $this->getValue();
         if ($this->value instanceof ShellInterface && $this->wrapAsSubcommand) {
-            $value = $this->wrapWithBacktricks ? "`$value`" : "$($value)";
+            $value = $this->wrapWithBacktricks ? sprintf('`%s`', $value) : sprintf('$(%s)', $value);
         }
+
         return sprintf(
             '%s%s%s%s%s',
             $this->prefix,

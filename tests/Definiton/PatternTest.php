@@ -32,7 +32,7 @@ final class PatternTest extends TestCase
 
     public function testSplitDoubleQuotedStrings(): void
     {
-        $this->assertEquals(["a", "\"b\" c", "d"], Pattern::split('a "\"b\" c" d'));
+        $this->assertEquals(["a", '"b" c', "d"], Pattern::split('a "\"b\" c" d'));
     }
 
     public function testSplitEscapedSpaceStrings(): void
@@ -44,7 +44,7 @@ final class PatternTest extends TestCase
     {
         $this->expectException(ShellBuilderException::class);
         $this->expectExceptionMessage('The given input has mismatching Quotes');
-        Pattern::split("a \"b c d e");
+        Pattern::split('a "b c d e');
     }
 
     public function testBadSingleQuotes(): void
@@ -74,6 +74,6 @@ final class PatternTest extends TestCase
 
     public function testSplitPercentSign(): void
     {
-        $this->assertEquals(["abc", "%foo bar%"], Pattern::split('abc \'%foo bar%\''));
+        $this->assertEquals(["abc", "%foo bar%"], Pattern::split("abc '%foo bar%'"));
     }
 }
