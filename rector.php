@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use PLUS\GrumPHPConfig\RectorSettings;
-use Rector\Config\RectorConfig;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
+use Rector\Config\RectorConfig;
 
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->parallel();
@@ -21,8 +21,7 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->sets(
         [
             ...RectorSettings::sets(true),
-            ...RectorSettings::setsTypo3(false),
-        ]
+        ],
     );
 
     // remove some rules
@@ -30,13 +29,12 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->skip(
         [
             ...RectorSettings::skip(),
-            ...RectorSettings::skipTypo3(),
 
             /**
              * rector should not touch these files
              */
             //__DIR__ . '/src/Example',
             //__DIR__ . '/src/Example.php',
-        ]
+        ],
     );
 };

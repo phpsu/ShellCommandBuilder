@@ -90,7 +90,6 @@ final class ShellCommand implements ShellInterface
 
     /**
      * @throws ShellBuilderException
-     * @return $this
      */
     public function addArgument(ShellInterface|string $argument, bool $escapeArgument = true): self
     {
@@ -102,7 +101,6 @@ final class ShellCommand implements ShellInterface
      * This is an alias for argument, that automatically escapes the argument.
      * It does in the end does not provide any additional functionality
      *
-     * @return $this
      * @throws ShellBuilderException
      */
     public function addSubCommand(ShellInterface $argument): self
@@ -120,9 +118,6 @@ final class ShellCommand implements ShellInterface
         return $this->add($word, false);
     }
 
-    /**
-     * @return $this
-     */
     private function add(ShellWord $word, bool $escapeArgument, bool $withAssignOperator = false): self
     {
         $word->setEscape($escapeArgument);

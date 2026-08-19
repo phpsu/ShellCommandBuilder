@@ -688,13 +688,13 @@ final class ShellBuilderTest extends TestCase
         $builder = ShellBuilder::new()
             ->if(false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('echo'))
             ->ifThis(static fn(ShellBuilder $builder): bool => $builder->hasCommands() === false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'));
-        static::assertEquals('print', (string)$builder);
+        self::assertEquals('print', (string)$builder);
 
         // if true
         $builder = ShellBuilder::new()
             ->if(true, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('echo'))
             ->ifThis(static fn(ShellBuilder $builder): bool => $builder->hasCommands() === false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'));
-        static::assertEquals('echo', (string)$builder);
+        self::assertEquals('echo', (string)$builder);
     }
 
     public function testComplexCondiditionalArguments(): void
@@ -706,7 +706,7 @@ final class ShellBuilderTest extends TestCase
                 static fn(ShellBuilder $builder): ShellBuilder => $builder->add('awk')
             )
             ->ifThis(static fn(ShellBuilder $builder): bool => $builder->hasCommands() === false, static fn(ShellBuilder $builder): ShellBuilder => $builder->add('print'), static fn(ShellBuilder $builder): ShellBuilder => $builder->and('print'));
-        static::assertEquals('awk && print', (string)$builder);
+        self::assertEquals('awk && print', (string)$builder);
     }
 
     public function testComplexCondiditionalArgumentsWithWrongArguments(): void

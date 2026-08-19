@@ -14,9 +14,6 @@ final class ArithmeticExpression extends BasicExpression
         return new self($useBashBrackets, $negateExpression);
     }
 
-    /**
-     * @return $this
-     */
     public function equal(ShellInterface|string $arg1, ShellInterface|string $arg2): self
     {
         $this->operator = ConditionalOperator::ARTITH_EQUAL;
@@ -25,9 +22,6 @@ final class ArithmeticExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function notEqual(ShellInterface|string $arg1, ShellInterface|string $arg2): self
     {
         $this->operator = ConditionalOperator::ARTITH_NOT_EQUAL;
@@ -36,9 +30,6 @@ final class ArithmeticExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function less(ShellInterface|string $arg1, ShellInterface|string $arg2): self
     {
         $this->operator = ConditionalOperator::ARTITH_LESS_THAN;
@@ -47,9 +38,6 @@ final class ArithmeticExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function greater(ShellInterface|string $arg1, ShellInterface|string $arg2): self
     {
         $this->operator = ConditionalOperator::ARTITH_GREATER_THAN;
@@ -58,9 +46,6 @@ final class ArithmeticExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function lessEqual(ShellInterface|string $arg1, ShellInterface|string $arg2): self
     {
         $this->operator = ConditionalOperator::ARTITH_LESS_EQUAL;
@@ -69,9 +54,6 @@ final class ArithmeticExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function greaterEqual(ShellInterface|string $arg1, ShellInterface|string $arg2): self
     {
         $this->operator = ConditionalOperator::ARTITH_GREATER_EQUAL;

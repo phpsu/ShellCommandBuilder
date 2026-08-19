@@ -16,9 +16,6 @@ final class StringExpression extends BasicExpression
         return new self($useBashBrackets, $negateExpression);
     }
 
-    /**
-     * @return $this
-     */
     public function lenghtZero(ShellInterface|string $string): self
     {
         $this->operator = ConditionalOperator::STRING_LENGHT_ZERO;
@@ -26,9 +23,6 @@ final class StringExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function lengthNotZero(ShellInterface|string $string): self
     {
         $this->operator = ConditionalOperator::STRING_LENGHT_NOT_ZERO;
@@ -36,9 +30,6 @@ final class StringExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function eq(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_EQUAL;
@@ -47,9 +38,6 @@ final class StringExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function equal(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_EQUAL_BASH;
@@ -59,9 +47,6 @@ final class StringExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function notEqual(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_NOT_EQUAL;
@@ -70,9 +55,6 @@ final class StringExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function sortsBefore(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_SORTS_BEFORE;
@@ -81,9 +63,6 @@ final class StringExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function sortsAfter(ShellInterface|string $stringA, ShellInterface|string $stringB): self
     {
         $this->operator = ConditionalOperator::STRING_SORTS_AFTER;
