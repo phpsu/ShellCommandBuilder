@@ -16,9 +16,6 @@ final class ShellExpression extends BasicExpression
         return new self($useBashBrackets, $negateExpression);
     }
 
-    /**
-     * @return $this
-     */
     public function isOptnameEnabled(ShellInterface|string $optname): self
     {
         $this->operator = ConditionalOperator::SHELL_OPTNAME_ENABLED;
@@ -26,9 +23,6 @@ final class ShellExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function isVariableSet(ShellInterface|string $variable): self
     {
         $this->operator = ConditionalOperator::SHELL_VARNAME_SET;
@@ -36,9 +30,6 @@ final class ShellExpression extends BasicExpression
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function isVariableSetWithNamedReference(ShellInterface|string $variable): self
     {
         $this->operator = ConditionalOperator::SHELL_VARNAME_SET_NAMED_REFERENCE;

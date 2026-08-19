@@ -68,7 +68,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
 
     /**
      * @param bool $escape is the value instance of ShellInterface, then this variable is automatically false
-     * @return $this
      * @throws ShellBuilderException
      */
     public function addVariable(string $variable, ShellInterface|string $value, bool $useBackticks = false, bool $escape = true, bool $noSemicolon = false): self
@@ -95,7 +94,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function add(ShellInterface|string ...$commands): self
@@ -108,7 +106,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function addSingle(ShellInterface|string $command, bool $raw = false): self
@@ -124,7 +121,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function and(ShellInterface|string $command): self
@@ -134,7 +130,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function or(ShellInterface|string $command): self
@@ -144,7 +139,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function async(ShellInterface|string $command = ''): self
@@ -154,7 +148,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function pipe(ShellInterface|string $command): self
@@ -164,7 +157,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function pipeWithForward(ShellInterface|string $command): self
@@ -174,7 +166,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function redirectOutput(ShellInterface|string $command, bool $append = false): self
@@ -185,7 +176,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function redirectInput(ShellInterface|string $command): self
@@ -196,7 +186,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function redirectError(ShellInterface|string $command): self
@@ -207,7 +196,6 @@ final class ShellBuilder implements ShellInterface, JsonSerializable
     }
 
     /**
-     * @return $this
      * @throws ShellBuilderException
      */
     public function redirect(ShellInterface|string $command, bool $toLeft = true): self

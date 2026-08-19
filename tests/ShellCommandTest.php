@@ -178,7 +178,7 @@ class ShellCommandTest extends TestCase
         $command = ShellBuilder::command('test')
             ->if(false, static fn(ShellCommand $command): ShellCommand => $command->addOption('f', 'false'))
             ->if(true, static fn(ShellCommand $command): ShellCommand => $command->addOption('t', 'true'));
-        static::assertEquals((string)$command, "test --t 'true'");
+        self::assertEquals((string)$command, "test --t 'true'");
     }
 
     public function testUnEscapedOption(): void
